@@ -35,7 +35,7 @@
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
         // Set to true once you've configured Supabase and run the schema
-        const USE_SUPABASE = false; // Change to true when ready
+        const USE_SUPABASE = true; // LIVE MODE ENABLED
 
         // ============================================
         // SUPABASE API FUNCTIONS
@@ -1308,48 +1308,101 @@ BYD MotorEast Singapore`;
         };
 
         // Login Screen with Registration
-        const LoginScreen = ({ onLogin }) => {
+        const LoginScreen = ({ onLogin, setClaims }) => {
             const [mode, setMode] = useState('customer'); // customer, admin
             const [view, setView] = useState('login'); // login, register
             const [loginData, setLoginData] = useState({ email: '', password: '' });
             const [registerData, setRegisterData] = useState({ name: '', email: '', password: '', confirmPassword: '', vehicle: '', condo: '' });
+            const [condosList, setCondosList] = useState([]);
             const [showPassword, setShowPassword] = useState(false);
             const [error, setError] = useState('');
             const [success, setSuccess] = useState('');
+            const [isLoading, setIsLoading] = useState(false);
 
-            // Demo users database
+            // Load condos list for registration
+            useEffect(() => {
+                if (USE_SUPABASE) {
+                    db.getCondos().then(setCondosList).catch(console.error);
+                }
+            }, []);
+
+            // Demo users database (fallback when USE_SUPABASE is false)
             const demoUsers = {
                 'john.tan@email.com': { password: 'demo123', type: 'customer', name: 'John Tan', vehicle: 'SMA1234B', condo: 'The Reef @ KPE' },
                 'david.wong@email.com': { password: 'demo123', type: 'customer', name: 'David Wong', vehicle: 'SMC9012D', condo: 'Parc Esta' },
                 'admin@motoreast.sg': { password: 'admin123', type: 'admin' }
             };
 
-            const handleLogin = (e) => {
+            const handleLogin = async (e) => {
                 e.preventDefault();
                 setError('');
+                setIsLoading(true);
 
-                const user = demoUsers[loginData.email.toLowerCase()];
-                if (!user) {
-                    setError('Email not found. Please register or check your email.');
-                    return;
-                }
-                if (user.password !== loginData.password) {
-                    setError('Incorrect password. Please try again.');
-                    return;
-                }
-                if (mode === 'admin' && user.type !== 'admin') {
-                    setError('This account is not an admin account.');
-                    return;
-                }
-                if (mode === 'customer' && user.type === 'admin') {
-                    setError('Please use Admin login for this account.');
-                    return;
-                }
+                try {
+                    if (USE_SUPABASE) {
+                        // Supabase authentication
+                        const { user: authUser } = await db.signIn(loginData.email, loginData.password);
+                        const profile = await db.getProfile(authUser.id);
 
-                onLogin(user);
+                        // Check role matches login mode
+                        if (mode === 'admin' && profile.role !== 'admin') {
+                            setError('This account is not an admin account.');
+                            await db.signOut();
+                            setIsLoading(false);
+                            return;
+                        }
+
+                        const userData = {
+                            id: authUser.id,
+                            type: profile.role,
+                            name: profile.name,
+                            email: profile.email,
+                            vehicle: profile.vehicle_number,
+                            condo: profile.condo?.name || '',
+                            condoId: profile.condo_id,
+                            rebateRate: profile.condo?.rebate_rate || 0.10
+                        };
+
+                        // Load claims for admin
+                        if (profile.role === 'admin') {
+                            const allClaims = await db.getAllClaims();
+                            setClaims(allClaims);
+                        }
+
+                        onLogin(userData);
+                    } else {
+                        // Demo mode
+                        const user = demoUsers[loginData.email.toLowerCase()];
+                        if (!user) {
+                            setError('Email not found. Please register or check your email.');
+                            setIsLoading(false);
+                            return;
+                        }
+                        if (user.password !== loginData.password) {
+                            setError('Incorrect password. Please try again.');
+                            setIsLoading(false);
+                            return;
+                        }
+                        if (mode === 'admin' && user.type !== 'admin') {
+                            setError('This account is not an admin account.');
+                            setIsLoading(false);
+                            return;
+                        }
+                        if (mode === 'customer' && user.type === 'admin') {
+                            setError('Please use Admin login for this account.');
+                            setIsLoading(false);
+                            return;
+                        }
+                        onLogin(user);
+                    }
+                } catch (err) {
+                    console.error('Login error:', err);
+                    setError(err.message || 'Login failed. Please check your credentials.');
+                }
+                setIsLoading(false);
             };
 
-            const handleRegister = (e) => {
+            const handleRegister = async (e) => {
                 e.preventDefault();
                 setError('');
 
@@ -1361,18 +1414,41 @@ BYD MotorEast Singapore`;
                     setError('Password must be at least 6 characters.');
                     return;
                 }
-                if (demoUsers[registerData.email.toLowerCase()]) {
-                    setError('Email already registered. Please login.');
-                    return;
-                }
 
-                // Simulate successful registration
-                setSuccess('Registration successful! Your account is pending admin approval. You will receive an email once approved.');
-                setTimeout(() => {
-                    setView('login');
-                    setSuccess('');
-                    setRegisterData({ name: '', email: '', password: '', confirmPassword: '', vehicle: '', condo: '' });
-                }, 3000);
+                setIsLoading(true);
+
+                try {
+                    if (USE_SUPABASE) {
+                        // Find condo ID
+                        const selectedCondo = condosList.find(c => c.name === registerData.condo);
+
+                        await db.signUp(registerData.email, registerData.password, {
+                            name: registerData.name,
+                            vehicle_number: registerData.vehicle,
+                            condo_id: selectedCondo?.id
+                        });
+
+                        // Update profile with condo_id (trigger creates basic profile)
+                        setSuccess('Registration successful! Please check your email to confirm your account, then login.');
+                    } else {
+                        if (demoUsers[registerData.email.toLowerCase()]) {
+                            setError('Email already registered. Please login.');
+                            setIsLoading(false);
+                            return;
+                        }
+                        setSuccess('Registration successful! Your account is pending admin approval. You will receive an email once approved.');
+                    }
+
+                    setTimeout(() => {
+                        setView('login');
+                        setSuccess('');
+                        setRegisterData({ name: '', email: '', password: '', confirmPassword: '', vehicle: '', condo: '' });
+                    }, 3000);
+                } catch (err) {
+                    console.error('Registration error:', err);
+                    setError(err.message || 'Registration failed. Please try again.');
+                }
+                setIsLoading(false);
             };
 
             return (
@@ -1438,8 +1514,12 @@ BYD MotorEast Singapore`;
                                         </button>
                                     </div>
                                 </div>
-                                <button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all">
-                                    {mode === 'admin' ? 'Login as Admin' : 'Login'}
+                                <button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-slate-500 disabled:to-slate-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                                    {isLoading ? (
+                                        <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Signing in...</>
+                                    ) : (
+                                        mode === 'admin' ? 'Login as Admin' : 'Login'
+                                    )}
                                 </button>
 
                                 {mode === 'customer' && (
@@ -1514,9 +1594,9 @@ BYD MotorEast Singapore`;
                                             className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-amber-500 outline-none"
                                         >
                                             <option value="" className="bg-slate-800">Select condo...</option>
-                                            <option value="The Reef @ KPE" className="bg-slate-800">The Reef @ KPE</option>
-                                            <option value="Parc Esta" className="bg-slate-800">Parc Esta</option>
-                                            <option value="Treasure @ Tampines" className="bg-slate-800">Treasure @ Tampines</option>
+                                            {(USE_SUPABASE ? condosList : condoData).map(c => (
+                                                <option key={c.name} value={c.name} className="bg-slate-800">{c.name}</option>
+                                            ))}
                                         </select>
                                     </div>
                                     <div>
@@ -1549,9 +1629,12 @@ BYD MotorEast Singapore`;
                                     </p>
                                 </div>
 
-                                <button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
-                                    <UserPlus className="w-5 h-5" />
-                                    Submit Registration
+                                <button type="submit" disabled={isLoading} className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-slate-500 disabled:to-slate-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                                    {isLoading ? (
+                                        <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Registering...</>
+                                    ) : (
+                                        <><UserPlus className="w-5 h-5" />Submit Registration</>
+                                    )}
                                 </button>
                             </form>
                         )}
@@ -1566,10 +1649,74 @@ BYD MotorEast Singapore`;
         function App() {
             const [user, setUser] = useState(null);
             const [claims, setClaims] = useState(initialClaims);
-            
-            if (!user) return <LoginScreen onLogin={setUser} />;
-            if (user.type === 'admin') return <AdminDashboard claims={claims} setClaims={setClaims} onLogout={() => setUser(null)} />;
-            return <CustomerDashboard user={user} claims={claims} setClaims={setClaims} onLogout={() => setUser(null)} />;
+            const [loading, setLoading] = useState(USE_SUPABASE);
+
+            // Check for existing session on mount (Supabase mode)
+            useEffect(() => {
+                if (!USE_SUPABASE) return;
+
+                const checkSession = async () => {
+                    try {
+                        const session = await db.getSession();
+                        if (session?.user) {
+                            const profile = await db.getProfile(session.user.id);
+                            setUser({
+                                id: session.user.id,
+                                type: profile.role,
+                                name: profile.name,
+                                email: profile.email,
+                                vehicle: profile.vehicle_number,
+                                condo: profile.condo?.name || '',
+                                condoId: profile.condo_id,
+                                rebateRate: profile.condo?.rebate_rate || 0.10
+                            });
+                            // Load claims
+                            if (profile.role === 'admin') {
+                                const allClaims = await db.getAllClaims();
+                                setClaims(allClaims);
+                            }
+                        }
+                    } catch (err) {
+                        console.error('Session check failed:', err);
+                    }
+                    setLoading(false);
+                };
+
+                checkSession();
+
+                // Listen for auth changes
+                const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+                    if (event === 'SIGNED_OUT') {
+                        setUser(null);
+                        setClaims(initialClaims);
+                    }
+                });
+
+                return () => subscription.unsubscribe();
+            }, []);
+
+            const handleLogout = async () => {
+                if (USE_SUPABASE) {
+                    await db.signOut();
+                }
+                setUser(null);
+                setClaims(initialClaims);
+            };
+
+            if (loading) {
+                return (
+                    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center">
+                        <div className="text-center">
+                            <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+                            <p className="text-white/60">Loading...</p>
+                        </div>
+                    </div>
+                );
+            }
+
+            if (!user) return <LoginScreen onLogin={setUser} setClaims={setClaims} />;
+            if (user.type === 'admin') return <AdminDashboard claims={claims} setClaims={setClaims} onLogout={handleLogout} user={user} />;
+            return <CustomerDashboard user={user} claims={claims} setClaims={setClaims} onLogout={handleLogout} />;
         }
 
         ReactDOM.render(<App />, document.getElementById('root'));
