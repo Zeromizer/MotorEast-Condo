@@ -117,14 +117,44 @@
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
             </svg>
         );
+        const Calendar = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+        );
+        const Mail = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+            </svg>
+        );
+        const Copy = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+            </svg>
+        );
+        const UserPlus = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+            </svg>
+        );
+        const BarChart = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            </svg>
+        );
 
-        // Mock data
+        // Mock data - Extended with more months for accumulation view
         const initialClaims = [
-            { id: 1, date: '2024-12-05', operator: 'Charge+', amount: 45.60, rebateRate: 0.15, rebate: 6.84, status: 'approved', participant: 'John Tan', condo: 'The Reef @ KPE', vehicle: 'SMA1234B' },
-            { id: 2, date: '2024-12-03', operator: 'SP Group', amount: 38.90, rebateRate: 0.15, rebate: 5.84, status: 'approved', participant: 'John Tan', condo: 'The Reef @ KPE', vehicle: 'SMA1234B' },
-            { id: 3, date: '2024-12-01', operator: 'Shell Recharge', amount: 52.30, rebateRate: 0.15, rebate: 7.85, status: 'pending', participant: 'Mary Lim', condo: 'The Reef @ KPE', vehicle: 'SMB5678C' },
-            { id: 4, date: '2024-11-28', operator: 'Charge+', amount: 41.20, rebateRate: 0.12, rebate: 4.94, status: 'approved', participant: 'David Wong', condo: 'Parc Esta', vehicle: 'SMC9012D' },
-            { id: 5, date: '2024-11-25', operator: 'SP Group', amount: 310.00, rebateRate: 0.15, rebate: 46.50, status: 'flagged', participant: 'Sarah Chen', condo: 'The Reef @ KPE', vehicle: 'SMD3456E' },
+            { id: 1, date: '2024-12-05', operator: 'Charge+', amount: 45.60, rebateRate: 0.15, rebate: 6.84, status: 'approved', participant: 'John Tan', condo: 'The Reef @ KPE', vehicle: 'SMA1234B', email: 'john.tan@email.com' },
+            { id: 2, date: '2024-12-03', operator: 'SP Group', amount: 38.90, rebateRate: 0.15, rebate: 5.84, status: 'approved', participant: 'John Tan', condo: 'The Reef @ KPE', vehicle: 'SMA1234B', email: 'john.tan@email.com' },
+            { id: 3, date: '2024-12-01', operator: 'Shell Recharge', amount: 52.30, rebateRate: 0.15, rebate: 7.85, status: 'pending', participant: 'Mary Lim', condo: 'The Reef @ KPE', vehicle: 'SMB5678C', email: 'mary.lim@email.com' },
+            { id: 4, date: '2024-11-28', operator: 'Charge+', amount: 41.20, rebateRate: 0.12, rebate: 4.94, status: 'approved', participant: 'David Wong', condo: 'Parc Esta', vehicle: 'SMC9012D', email: 'david.wong@email.com' },
+            { id: 5, date: '2024-11-25', operator: 'SP Group', amount: 310.00, rebateRate: 0.15, rebate: 46.50, status: 'flagged', participant: 'Sarah Chen', condo: 'The Reef @ KPE', vehicle: 'SMD3456E', email: 'sarah.chen@email.com' },
+            { id: 6, date: '2024-11-15', operator: 'Charge+', amount: 52.00, rebateRate: 0.15, rebate: 7.80, status: 'approved', participant: 'John Tan', condo: 'The Reef @ KPE', vehicle: 'SMA1234B', email: 'john.tan@email.com' },
+            { id: 7, date: '2024-11-08', operator: 'Shell Recharge', amount: 48.50, rebateRate: 0.15, rebate: 7.28, status: 'approved', participant: 'John Tan', condo: 'The Reef @ KPE', vehicle: 'SMA1234B', email: 'john.tan@email.com' },
+            { id: 8, date: '2024-10-22', operator: 'SP Group', amount: 55.00, rebateRate: 0.15, rebate: 8.25, status: 'approved', participant: 'John Tan', condo: 'The Reef @ KPE', vehicle: 'SMA1234B', email: 'john.tan@email.com' },
+            { id: 9, date: '2024-10-10', operator: 'Charge+', amount: 42.30, rebateRate: 0.15, rebate: 6.35, status: 'approved', participant: 'John Tan', condo: 'The Reef @ KPE', vehicle: 'SMA1234B', email: 'john.tan@email.com' },
+            { id: 10, date: '2024-10-05', operator: 'Charge+', amount: 38.00, rebateRate: 0.12, rebate: 4.56, status: 'approved', participant: 'David Wong', condo: 'Parc Esta', vehicle: 'SMC9012D', email: 'david.wong@email.com' },
         ];
 
         const condoData = [
@@ -188,7 +218,7 @@
                         <span className="font-semibold text-slate-800">${current.toFixed(2)} / ${max.toFixed(2)}</span>
                     </div>
                     <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
-                        <div 
+                        <div
                             className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all duration-500"
                             style={{ width: `${percentage}%` }}
                         />
@@ -198,9 +228,404 @@
             );
         };
 
+        // Monthly Accumulation Component
+        const MonthlyAccumulation = ({ claims, onClose }) => {
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+            // Group claims by month
+            const monthlyData = claims.reduce((acc, claim) => {
+                const date = new Date(claim.date);
+                const key = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                const monthLabel = `${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+
+                if (!acc[key]) {
+                    acc[key] = { key, label: monthLabel, claims: [], totalAmount: 0, totalRebate: 0, approvedRebate: 0 };
+                }
+                acc[key].claims.push(claim);
+                acc[key].totalAmount += claim.amount;
+                acc[key].totalRebate += claim.rebate;
+                if (claim.status === 'approved') {
+                    acc[key].approvedRebate += claim.rebate;
+                }
+                return acc;
+            }, {});
+
+            const sortedMonths = Object.values(monthlyData).sort((a, b) => b.key.localeCompare(a.key));
+            const maxRebate = Math.max(...sortedMonths.map(m => m.totalRebate));
+
+            return (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+                        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
+                                    <BarChart className="w-5 h-5 text-amber-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-slate-800">Monthly Accumulation</h3>
+                                    <p className="text-sm text-slate-500">Your rebate history by month</p>
+                                </div>
+                            </div>
+                            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="p-6 overflow-y-auto max-h-[60vh]">
+                            <div className="space-y-4">
+                                {sortedMonths.map(month => (
+                                    <div key={month.key} className="bg-slate-50 rounded-xl p-4 border border-slate-200">
+                                        <div className="flex items-center justify-between mb-3">
+                                            <div className="flex items-center gap-2">
+                                                <Calendar className="w-5 h-5 text-slate-400" />
+                                                <span className="font-semibold text-slate-800">{month.label}</span>
+                                            </div>
+                                            <span className="text-sm text-slate-500">{month.claims.length} claim{month.claims.length !== 1 ? 's' : ''}</span>
+                                        </div>
+
+                                        {/* Visual bar */}
+                                        <div className="h-4 bg-slate-200 rounded-full overflow-hidden mb-3">
+                                            <div
+                                                className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full transition-all duration-500"
+                                                style={{ width: `${(month.totalRebate / maxRebate) * 100}%` }}
+                                            />
+                                        </div>
+
+                                        <div className="grid grid-cols-3 gap-4 text-center">
+                                            <div>
+                                                <p className="text-xs text-slate-500">Charged</p>
+                                                <p className="font-bold text-slate-800">${month.totalAmount.toFixed(2)}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-slate-500">Total Rebate</p>
+                                                <p className="font-bold text-amber-600">${month.totalRebate.toFixed(2)}</p>
+                                            </div>
+                                            <div>
+                                                <p className="text-xs text-slate-500">Approved</p>
+                                                <p className="font-bold text-emerald-600">${month.approvedRebate.toFixed(2)}</p>
+                                            </div>
+                                        </div>
+
+                                        {/* Breakdown */}
+                                        <div className="mt-3 pt-3 border-t border-slate-200">
+                                            <div className="space-y-2">
+                                                {month.claims.map(claim => (
+                                                    <div key={claim.id} className="flex items-center justify-between text-sm">
+                                                        <div className="flex items-center gap-2">
+                                                            <span className="text-slate-500">{claim.date}</span>
+                                                            <span className="text-slate-700">{claim.operator}</span>
+                                                        </div>
+                                                        <div className="flex items-center gap-3">
+                                                            <span className="text-slate-600">${claim.amount.toFixed(2)}</span>
+                                                            <span className="text-emerald-600 font-medium">+${claim.rebate.toFixed(2)}</span>
+                                                            <StatusBadge status={claim.status} />
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="p-4 border-t border-slate-200 bg-slate-50">
+                            <div className="flex items-center justify-between">
+                                <span className="text-sm text-slate-500">All-time total rebate</span>
+                                <span className="text-xl font-bold text-amber-600">
+                                    ${sortedMonths.reduce((sum, m) => sum + m.totalRebate, 0).toFixed(2)}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        // Email Template Generator Component (Admin)
+        const EmailTemplateGenerator = ({ claims, onClose }) => {
+            const [selectedParticipant, setSelectedParticipant] = useState('');
+            const [selectedMonth, setSelectedMonth] = useState('');
+            const [copied, setCopied] = useState(false);
+            const [emailType, setEmailType] = useState('acknowledgment'); // acknowledgment, monthly-summary
+
+            // Get unique participants with approved claims
+            const participants = [...new Set(claims.filter(c => c.status === 'approved').map(c => c.participant))];
+
+            // Get unique months
+            const months = [...new Set(claims.map(c => {
+                const date = new Date(c.date);
+                return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+            }))].sort().reverse();
+
+            const monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+            const formatMonth = (monthKey) => {
+                const [year, month] = monthKey.split('-');
+                return `${monthNames[parseInt(month) - 1]} ${year}`;
+            };
+
+            // Filter claims based on selection
+            const getFilteredClaims = () => {
+                let filtered = claims.filter(c => c.status === 'approved');
+                if (selectedParticipant) {
+                    filtered = filtered.filter(c => c.participant === selectedParticipant);
+                }
+                if (selectedMonth) {
+                    filtered = filtered.filter(c => {
+                        const date = new Date(c.date);
+                        const claimMonth = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                        return claimMonth === selectedMonth;
+                    });
+                }
+                return filtered;
+            };
+
+            const filteredClaims = getFilteredClaims();
+            const participantData = selectedParticipant ? claims.find(c => c.participant === selectedParticipant) : null;
+
+            // Calculate totals
+            const totalAmount = filteredClaims.reduce((sum, c) => sum + c.amount, 0);
+            const totalRebate = filteredClaims.reduce((sum, c) => sum + c.rebate, 0);
+
+            // Calculate YTD for participant
+            const getYTDRebate = (participant) => {
+                return claims
+                    .filter(c => c.participant === participant && c.status === 'approved')
+                    .reduce((sum, c) => sum + c.rebate, 0);
+            };
+
+            const generateAcknowledgmentEmail = () => {
+                if (!selectedParticipant || filteredClaims.length === 0) return '';
+
+                const latestClaim = filteredClaims[0];
+                const ytdRebate = getYTDRebate(selectedParticipant);
+                const yearCap = 500;
+
+                return `Subject: MotorEast EV Charging Rebate - Receipt Acknowledged
+
+Dear ${selectedParticipant},
+
+Thank you for submitting your EV charging receipt. We are pleased to confirm receipt of your claim.
+
+CLAIM DETAILS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Date:           ${latestClaim.date}
+Operator:       ${latestClaim.operator}
+Amount Charged: S$${latestClaim.amount.toFixed(2)}
+Rebate Rate:    ${(latestClaim.rebateRate * 100).toFixed(0)}%
+Rebate Amount:  S$${latestClaim.rebate.toFixed(2)}
+
+YOUR ACCUMULATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Year-to-Date Rebate:  S$${ytdRebate.toFixed(2)}
+Annual Cap:           S$${yearCap.toFixed(2)}
+Remaining Cap:        S$${(yearCap - ytdRebate).toFixed(2)}
+
+Your rebate will be processed and disbursed by the 15th of the following month.
+
+If you have any questions, please don't hesitate to contact us.
+
+Best regards,
+MotorEast EV-Ready Condo Program
+BYD MotorEast Singapore`;
+            };
+
+            const generateMonthlySummaryEmail = () => {
+                if (!selectedParticipant || !selectedMonth || filteredClaims.length === 0) return '';
+
+                const ytdRebate = getYTDRebate(selectedParticipant);
+                const yearCap = 500;
+
+                let claimsList = filteredClaims.map(c =>
+                    `  • ${c.date} | ${c.operator.padEnd(15)} | S$${c.amount.toFixed(2).padStart(7)} | Rebate: S$${c.rebate.toFixed(2)}`
+                ).join('\n');
+
+                return `Subject: MotorEast EV Charging Rebate - ${formatMonth(selectedMonth)} Summary
+
+Dear ${selectedParticipant},
+
+Here is your monthly summary for the MotorEast EV-Ready Condo Rebate Program.
+
+${formatMonth(selectedMonth).toUpperCase()} SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Total Claims:        ${filteredClaims.length}
+Total Charged:       S$${totalAmount.toFixed(2)}
+Total Rebate:        S$${totalRebate.toFixed(2)}
+
+CLAIM BREAKDOWN
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+${claimsList}
+
+YOUR ACCUMULATION
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Year-to-Date Rebate:  S$${ytdRebate.toFixed(2)}
+Annual Cap:           S$${yearCap.toFixed(2)}
+Remaining Cap:        S$${(yearCap - ytdRebate).toFixed(2)}
+
+Your rebate of S$${totalRebate.toFixed(2)} will be disbursed by the 15th of the following month to your registered bank account.
+
+Thank you for being part of the MotorEast EV-Ready Condo Program!
+
+Best regards,
+MotorEast EV-Ready Condo Program
+BYD MotorEast Singapore`;
+            };
+
+            const emailContent = emailType === 'acknowledgment' ? generateAcknowledgmentEmail() : generateMonthlySummaryEmail();
+
+            const copyToClipboard = () => {
+                navigator.clipboard.writeText(emailContent);
+                setCopied(true);
+                setTimeout(() => setCopied(false), 2000);
+            };
+
+            return (
+                <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                    <div className="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden">
+                        <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                                <div className="w-10 h-10 bg-blue-100 rounded-xl flex items-center justify-center">
+                                    <Mail className="w-5 h-5 text-blue-600" />
+                                </div>
+                                <div>
+                                    <h3 className="text-xl font-bold text-slate-800">Email Template Generator</h3>
+                                    <p className="text-sm text-slate-500">Generate acknowledgment emails for customers</p>
+                                </div>
+                            </div>
+                            <button onClick={onClose} className="p-2 hover:bg-slate-100 rounded-lg">
+                                <X className="w-5 h-5" />
+                            </button>
+                        </div>
+
+                        <div className="p-6">
+                            {/* Email Type Selection */}
+                            <div className="flex gap-2 mb-4">
+                                <button
+                                    onClick={() => setEmailType('acknowledgment')}
+                                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${emailType === 'acknowledgment' ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                >
+                                    Single Receipt Acknowledgment
+                                </button>
+                                <button
+                                    onClick={() => setEmailType('monthly-summary')}
+                                    className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${emailType === 'monthly-summary' ? 'bg-blue-500 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                >
+                                    Monthly Summary
+                                </button>
+                            </div>
+
+                            {/* Filters */}
+                            <div className="grid sm:grid-cols-2 gap-4 mb-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-slate-700 mb-2">Participant</label>
+                                    <select
+                                        value={selectedParticipant}
+                                        onChange={(e) => setSelectedParticipant(e.target.value)}
+                                        className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                                    >
+                                        <option value="">Select participant...</option>
+                                        {participants.map(p => (
+                                            <option key={p} value={p}>{p}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                                {emailType === 'monthly-summary' && (
+                                    <div>
+                                        <label className="block text-sm font-medium text-slate-700 mb-2">Month</label>
+                                        <select
+                                            value={selectedMonth}
+                                            onChange={(e) => setSelectedMonth(e.target.value)}
+                                            className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-blue-500 outline-none"
+                                        >
+                                            <option value="">Select month...</option>
+                                            {months.map(m => (
+                                                <option key={m} value={m}>{formatMonth(m)}</option>
+                                            ))}
+                                        </select>
+                                    </div>
+                                )}
+                            </div>
+
+                            {/* Preview Stats */}
+                            {filteredClaims.length > 0 && (
+                                <div className="bg-slate-50 rounded-xl p-4 mb-4 border border-slate-200">
+                                    <div className="grid grid-cols-3 gap-4 text-center">
+                                        <div>
+                                            <p className="text-xs text-slate-500">Claims</p>
+                                            <p className="font-bold text-slate-800">{filteredClaims.length}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500">Total Charged</p>
+                                            <p className="font-bold text-slate-800">S${totalAmount.toFixed(2)}</p>
+                                        </div>
+                                        <div>
+                                            <p className="text-xs text-slate-500">Total Rebate</p>
+                                            <p className="font-bold text-emerald-600">S${totalRebate.toFixed(2)}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            )}
+
+                            {/* Email Preview */}
+                            <div className="relative">
+                                <label className="block text-sm font-medium text-slate-700 mb-2">Email Preview</label>
+                                <textarea
+                                    value={emailContent}
+                                    readOnly
+                                    placeholder="Select a participant to generate email..."
+                                    className="w-full h-64 border border-slate-300 rounded-lg px-4 py-3 font-mono text-sm bg-slate-50 resize-none"
+                                />
+                                {emailContent && (
+                                    <button
+                                        onClick={copyToClipboard}
+                                        className={`absolute top-8 right-2 flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-all ${copied ? 'bg-emerald-500 text-white' : 'bg-white border border-slate-300 text-slate-600 hover:bg-slate-50'}`}
+                                    >
+                                        {copied ? (
+                                            <><CheckCircle className="w-4 h-4" />Copied!</>
+                                        ) : (
+                                            <><Copy className="w-4 h-4" />Copy</>
+                                        )}
+                                    </button>
+                                )}
+                            </div>
+
+                            {/* Recipient Email */}
+                            {participantData && (
+                                <div className="mt-4 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                                    <p className="text-sm text-blue-800">
+                                        <span className="font-medium">Send to:</span> {participantData.email}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+
+                        <div className="p-4 border-t border-slate-200 bg-slate-50 flex justify-end gap-3">
+                            <button
+                                onClick={onClose}
+                                className="px-4 py-2 text-slate-600 hover:bg-slate-200 rounded-lg font-medium"
+                            >
+                                Close
+                            </button>
+                            {emailContent && participantData && (
+                                <a
+                                    href={`mailto:${participantData.email}?subject=${encodeURIComponent(emailContent.split('\n')[0].replace('Subject: ', ''))}&body=${encodeURIComponent(emailContent.split('\n').slice(2).join('\n'))}`}
+                                    className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg"
+                                >
+                                    <Mail className="w-4 h-4" />
+                                    Open in Email Client
+                                </a>
+                            )}
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
         // Customer Dashboard
         const CustomerDashboard = ({ user, claims, setClaims, onLogout }) => {
             const [showUpload, setShowUpload] = useState(false);
+            const [showMonthly, setShowMonthly] = useState(false);
             const [uploadedFile, setUploadedFile] = useState(null);
             const [previewUrl, setPreviewUrl] = useState(null);
             const [formData, setFormData] = useState({ operator: '', amount: '', date: '' });
@@ -362,14 +787,23 @@
                             </div>
                         </div>
 
-                        {/* Submit Button */}
-                        <button
-                            onClick={() => setShowUpload(true)}
-                            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 mb-6"
-                        >
-                            <Upload className="w-5 h-5" />
-                            Submit New Claim
-                        </button>
+                        {/* Action Buttons */}
+                        <div className="grid sm:grid-cols-2 gap-4 mb-6">
+                            <button
+                                onClick={() => setShowUpload(true)}
+                                className="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3"
+                            >
+                                <Upload className="w-5 h-5" />
+                                Submit New Claim
+                            </button>
+                            <button
+                                onClick={() => setShowMonthly(true)}
+                                className="bg-white border-2 border-amber-500 text-amber-600 hover:bg-amber-50 font-bold py-4 px-6 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-3"
+                            >
+                                <BarChart className="w-5 h-5" />
+                                Monthly Summary
+                            </button>
+                        </div>
 
                         {/* Upload Modal */}
                         {showUpload && (
@@ -459,6 +893,11 @@
                             </div>
                         )}
 
+                        {/* Monthly Accumulation Modal */}
+                        {showMonthly && (
+                            <MonthlyAccumulation claims={userClaims} onClose={() => setShowMonthly(false)} />
+                        )}
+
                         {/* Recent Claims */}
                         <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
                             <div className="p-6 border-b border-slate-200">
@@ -506,6 +945,7 @@
             const [filter, setFilter] = useState('all');
             const [searchTerm, setSearchTerm] = useState('');
             const [selectedClaim, setSelectedClaim] = useState(null);
+            const [showEmailGenerator, setShowEmailGenerator] = useState(false);
 
             const filteredClaims = claims.filter(claim => {
                 const matchesFilter = filter === 'all' || claim.status === filter;
@@ -627,6 +1067,9 @@
                                             <option value="approved">Approved</option>
                                             <option value="rejected">Rejected</option>
                                         </select>
+                                        <button onClick={() => setShowEmailGenerator(true)} className="flex items-center gap-2 bg-blue-500 hover:bg-blue-600 text-white font-medium py-2 px-4 rounded-lg">
+                                            <Mail className="w-5 h-5" />Email
+                                        </button>
                                         <button onClick={downloadCSV} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-lg">
                                             <Download className="w-5 h-5" />Export CSV
                                         </button>
@@ -677,67 +1120,266 @@
                                 </table>
                             </div>
                         </div>
+
+                        {/* Email Generator Modal */}
+                        {showEmailGenerator && (
+                            <EmailTemplateGenerator claims={claims} onClose={() => setShowEmailGenerator(false)} />
+                        )}
                     </main>
                 </div>
             );
         };
 
-        // Login Screen
+        // Login Screen with Registration
         const LoginScreen = ({ onLogin }) => {
-            const [mode, setMode] = useState('customer');
-            
+            const [mode, setMode] = useState('customer'); // customer, admin
+            const [view, setView] = useState('login'); // login, register
+            const [loginData, setLoginData] = useState({ email: '', password: '' });
+            const [registerData, setRegisterData] = useState({ name: '', email: '', password: '', confirmPassword: '', vehicle: '', condo: '' });
+            const [showPassword, setShowPassword] = useState(false);
+            const [error, setError] = useState('');
+            const [success, setSuccess] = useState('');
+
+            // Demo users database
+            const demoUsers = {
+                'john.tan@email.com': { password: 'demo123', type: 'customer', name: 'John Tan', vehicle: 'SMA1234B', condo: 'The Reef @ KPE' },
+                'david.wong@email.com': { password: 'demo123', type: 'customer', name: 'David Wong', vehicle: 'SMC9012D', condo: 'Parc Esta' },
+                'admin@motoreast.sg': { password: 'admin123', type: 'admin' }
+            };
+
+            const handleLogin = (e) => {
+                e.preventDefault();
+                setError('');
+
+                const user = demoUsers[loginData.email.toLowerCase()];
+                if (!user) {
+                    setError('Email not found. Please register or check your email.');
+                    return;
+                }
+                if (user.password !== loginData.password) {
+                    setError('Incorrect password. Please try again.');
+                    return;
+                }
+                if (mode === 'admin' && user.type !== 'admin') {
+                    setError('This account is not an admin account.');
+                    return;
+                }
+                if (mode === 'customer' && user.type === 'admin') {
+                    setError('Please use Admin login for this account.');
+                    return;
+                }
+
+                onLogin(user);
+            };
+
+            const handleRegister = (e) => {
+                e.preventDefault();
+                setError('');
+
+                if (registerData.password !== registerData.confirmPassword) {
+                    setError('Passwords do not match.');
+                    return;
+                }
+                if (registerData.password.length < 6) {
+                    setError('Password must be at least 6 characters.');
+                    return;
+                }
+                if (demoUsers[registerData.email.toLowerCase()]) {
+                    setError('Email already registered. Please login.');
+                    return;
+                }
+
+                // Simulate successful registration
+                setSuccess('Registration successful! Your account is pending admin approval. You will receive an email once approved.');
+                setTimeout(() => {
+                    setView('login');
+                    setSuccess('');
+                    setRegisterData({ name: '', email: '', password: '', confirmPassword: '', vehicle: '', condo: '' });
+                }, 3000);
+            };
+
             return (
                 <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
                     <div className="absolute inset-0 overflow-hidden">
                         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
                         <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl" />
                     </div>
-                    
+
                     <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 max-w-md w-full">
-                        <div className="text-center mb-8">
+                        <div className="text-center mb-6">
                             <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                                 <Zap className="w-8 h-8 text-white" />
                             </div>
                             <h1 className="text-3xl font-bold text-white mb-2">MotorEast</h1>
-                            <p className="text-amber-400 font-medium">EV-Ready Condo Program</p>
+                            <p className="text-amber-400 font-medium">EV-Ready Condo Rebate Portal</p>
                         </div>
-                        
+
+                        {/* Mode Toggle */}
                         <div className="flex bg-white/10 rounded-xl p-1 mb-6">
-                            <button onClick={() => setMode('customer')} className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${mode === 'customer' ? 'bg-amber-500 text-white shadow-lg' : 'text-white/70 hover:text-white'}`}>Customer</button>
-                            <button onClick={() => setMode('admin')} className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${mode === 'admin' ? 'bg-amber-500 text-white shadow-lg' : 'text-white/70 hover:text-white'}`}>Admin</button>
+                            <button onClick={() => { setMode('customer'); setView('login'); setError(''); }} className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${mode === 'customer' ? 'bg-amber-500 text-white shadow-lg' : 'text-white/70 hover:text-white'}`}>Customer</button>
+                            <button onClick={() => { setMode('admin'); setView('login'); setError(''); }} className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${mode === 'admin' ? 'bg-amber-500 text-white shadow-lg' : 'text-white/70 hover:text-white'}`}>Admin</button>
                         </div>
-                        
-                        {mode === 'customer' ? (
-                            <div className="space-y-4">
-                                <p className="text-white/60 text-sm text-center mb-4">Demo: Click any customer to login</p>
-                                
-                                <button onClick={() => onLogin({ type: 'customer', name: 'John Tan', vehicle: 'SMA1234B', condo: 'The Reef @ KPE' })} className="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl p-4 text-left transition-all group">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="font-medium text-white">John Tan</p>
-                                            <p className="text-sm text-white/60">The Reef @ KPE • SMA1234B</p>
-                                        </div>
-                                        <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-amber-400" />
-                                    </div>
-                                </button>
-                                
-                                <button onClick={() => onLogin({ type: 'customer', name: 'David Wong', vehicle: 'SMC9012D', condo: 'Parc Esta' })} className="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl p-4 text-left transition-all group">
-                                    <div className="flex items-center justify-between">
-                                        <div>
-                                            <p className="font-medium text-white">David Wong</p>
-                                            <p className="text-sm text-white/60">Parc Esta • SMC9012D</p>
-                                        </div>
-                                        <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-amber-400" />
-                                    </div>
-                                </button>
+
+                        {/* Error/Success Messages */}
+                        {error && (
+                            <div className="bg-red-500/20 border border-red-500/50 rounded-lg p-3 mb-4">
+                                <p className="text-red-200 text-sm">{error}</p>
                             </div>
-                        ) : (
-                            <button onClick={() => onLogin({ type: 'admin' })} className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg">
-                                Login as Admin
-                            </button>
                         )}
-                        
-                        <p className="text-white/40 text-xs text-center mt-6">Demo version • Data resets on refresh</p>
+                        {success && (
+                            <div className="bg-emerald-500/20 border border-emerald-500/50 rounded-lg p-3 mb-4">
+                                <p className="text-emerald-200 text-sm">{success}</p>
+                            </div>
+                        )}
+
+                        {view === 'login' ? (
+                            <form onSubmit={handleLogin} className="space-y-4">
+                                <div>
+                                    <label className="block text-sm font-medium text-white/70 mb-2">Email</label>
+                                    <input
+                                        type="email"
+                                        value={loginData.email}
+                                        onChange={(e) => setLoginData({ ...loginData, email: e.target.value })}
+                                        required
+                                        placeholder={mode === 'admin' ? 'admin@motoreast.sg' : 'your@email.com'}
+                                        className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-amber-500 outline-none"
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-sm font-medium text-white/70 mb-2">Password</label>
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? 'text' : 'password'}
+                                            value={loginData.password}
+                                            onChange={(e) => setLoginData({ ...loginData, password: e.target.value })}
+                                            required
+                                            placeholder="••••••••"
+                                            className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-amber-500 outline-none pr-12"
+                                        />
+                                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
+                                            <Eye className="w-5 h-5" />
+                                        </button>
+                                    </div>
+                                </div>
+                                <button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all">
+                                    {mode === 'admin' ? 'Login as Admin' : 'Login'}
+                                </button>
+
+                                {mode === 'customer' && (
+                                    <div className="text-center pt-4 border-t border-white/10">
+                                        <p className="text-white/50 text-sm mb-3">New to MotorEast EV Program?</p>
+                                        <button type="button" onClick={() => { setView('register'); setError(''); }} className="flex items-center justify-center gap-2 w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl py-3 px-4 text-white font-medium transition-all">
+                                            <UserPlus className="w-5 h-5" />
+                                            Register for Rebate Program
+                                        </button>
+                                    </div>
+                                )}
+
+                                {/* Demo credentials hint */}
+                                <div className="mt-4 p-3 bg-white/5 rounded-lg border border-white/10">
+                                    <p className="text-white/40 text-xs text-center mb-2">Demo Credentials:</p>
+                                    {mode === 'customer' ? (
+                                        <p className="text-white/60 text-xs text-center">john.tan@email.com / demo123</p>
+                                    ) : (
+                                        <p className="text-white/60 text-xs text-center">admin@motoreast.sg / admin123</p>
+                                    )}
+                                </div>
+                            </form>
+                        ) : (
+                            <form onSubmit={handleRegister} className="space-y-4">
+                                <div className="flex items-center gap-2 mb-4">
+                                    <button type="button" onClick={() => { setView('login'); setError(''); }} className="p-2 hover:bg-white/10 rounded-lg text-white/60 hover:text-white">
+                                        <ChevronRight className="w-5 h-5 rotate-180" />
+                                    </button>
+                                    <h2 className="text-lg font-bold text-white">Register for Rebate Program</h2>
+                                </div>
+
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div className="col-span-2">
+                                        <label className="block text-sm font-medium text-white/70 mb-2">Full Name</label>
+                                        <input
+                                            type="text"
+                                            value={registerData.name}
+                                            onChange={(e) => setRegisterData({ ...registerData, name: e.target.value })}
+                                            required
+                                            placeholder="John Tan"
+                                            className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-amber-500 outline-none"
+                                        />
+                                    </div>
+                                    <div className="col-span-2">
+                                        <label className="block text-sm font-medium text-white/70 mb-2">Email</label>
+                                        <input
+                                            type="email"
+                                            value={registerData.email}
+                                            onChange={(e) => setRegisterData({ ...registerData, email: e.target.value })}
+                                            required
+                                            placeholder="your@email.com"
+                                            className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-amber-500 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-white/70 mb-2">Vehicle No.</label>
+                                        <input
+                                            type="text"
+                                            value={registerData.vehicle}
+                                            onChange={(e) => setRegisterData({ ...registerData, vehicle: e.target.value.toUpperCase() })}
+                                            required
+                                            placeholder="SMA1234B"
+                                            className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-amber-500 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-white/70 mb-2">Condo</label>
+                                        <select
+                                            value={registerData.condo}
+                                            onChange={(e) => setRegisterData({ ...registerData, condo: e.target.value })}
+                                            required
+                                            className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-amber-500 outline-none"
+                                        >
+                                            <option value="" className="bg-slate-800">Select condo...</option>
+                                            <option value="The Reef @ KPE" className="bg-slate-800">The Reef @ KPE</option>
+                                            <option value="Parc Esta" className="bg-slate-800">Parc Esta</option>
+                                            <option value="Treasure @ Tampines" className="bg-slate-800">Treasure @ Tampines</option>
+                                        </select>
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-white/70 mb-2">Password</label>
+                                        <input
+                                            type="password"
+                                            value={registerData.password}
+                                            onChange={(e) => setRegisterData({ ...registerData, password: e.target.value })}
+                                            required
+                                            placeholder="••••••••"
+                                            className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-amber-500 outline-none"
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="block text-sm font-medium text-white/70 mb-2">Confirm</label>
+                                        <input
+                                            type="password"
+                                            value={registerData.confirmPassword}
+                                            onChange={(e) => setRegisterData({ ...registerData, confirmPassword: e.target.value })}
+                                            required
+                                            placeholder="••••••••"
+                                            className="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:ring-2 focus:ring-amber-500 outline-none"
+                                        />
+                                    </div>
+                                </div>
+
+                                <div className="bg-amber-500/10 border border-amber-500/30 rounded-lg p-3">
+                                    <p className="text-amber-200 text-xs">
+                                        <strong>Note:</strong> Your registration will be reviewed by admin. You will receive an email once your account is approved and linked to your condo's rebate tier.
+                                    </p>
+                                </div>
+
+                                <button type="submit" className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                                    <UserPlus className="w-5 h-5" />
+                                    Submit Registration
+                                </button>
+                            </form>
+                        )}
+
+                        <p className="text-white/40 text-xs text-center mt-6">Powered by BYD MotorEast Singapore</p>
                     </div>
                 </div>
             );
