@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MotorEast EV-Ready Condo Rebate Portal</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .animate-spin { animation: spin 1s linear infinite; }
+        @keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    
+    <script type="text/babel">
+        const { useState, useCallback, useEffect } = React;
+
+        // Icon components using Lucide
+        const Icon = ({ name, className }) => {
+            const ref = React.useRef(null);
+            useEffect(() => {
+                if (ref.current) {
+                    ref.current.innerHTML = '';
+                    const icon = lucide.createElement(lucide.icons[name]);
+                    ref.current.appendChild(icon);
+                }
+            }, [name]);
+            return <span ref={ref} className={`inline-flex ${className || ''}`} style={{ width: '1em', height: '1em' }} />;
+        };
+
+        // Simple icon components
+        const Upload = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+            </svg>
+        );
+        const CheckCircle = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+        const XCircle = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+        const Clock = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+        const Download = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+            </svg>
+        );
+        const ChevronRight = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
+            </svg>
+        );
+        const Zap = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
+            </svg>
+        );
+        const Users = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+            </svg>
+        );
+        const LogOut = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+            </svg>
+        );
+        const X = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        );
+        const Eye = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+            </svg>
+        );
+        const FileText = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+            </svg>
+        );
+        const DollarSign = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+        );
+        const Building = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+            </svg>
+        );
+        const TrendingUp = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+            </svg>
+        );
+        const Search = ({ className }) => (
+            <svg className={className} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+        );
+
+        // Mock data
+        const initialClaims = [
+            { id: 1, date: '2024-12-05', operator: 'Charge+', amount: 45.60, rebateRate: 0.15, rebate: 6.84, status: 'approved', participant: 'John Tan', condo: 'The Reef @ KPE', vehicle: 'SMA1234B' },
+            { id: 2, date: '2024-12-03', operator: 'SP Group', amount: 38.90, rebateRate: 0.15, rebate: 5.84, status: 'approved', participant: 'John Tan', condo: 'The Reef @ KPE', vehicle: 'SMA1234B' },
+            { id: 3, date: '2024-12-01', operator: 'Shell Recharge', amount: 52.30, rebateRate: 0.15, rebate: 7.85, status: 'pending', participant: 'Mary Lim', condo: 'The Reef @ KPE', vehicle: 'SMB5678C' },
+            { id: 4, date: '2024-11-28', operator: 'Charge+', amount: 41.20, rebateRate: 0.12, rebate: 4.94, status: 'approved', participant: 'David Wong', condo: 'Parc Esta', vehicle: 'SMC9012D' },
+            { id: 5, date: '2024-11-25', operator: 'SP Group', amount: 310.00, rebateRate: 0.15, rebate: 46.50, status: 'flagged', participant: 'Sarah Chen', condo: 'The Reef @ KPE', vehicle: 'SMD3456E' },
+        ];
+
+        const condoData = [
+            { name: 'The Reef @ KPE', owners: 14, tier: 'Gold', rate: 0.15, duration: 3, monthlyCharging: 890 },
+            { name: 'Parc Esta', owners: 8, tier: 'Silver', rate: 0.12, duration: 2, monthlyCharging: 520 },
+            { name: 'Treasure @ Tampines', owners: 5, tier: 'Bronze', rate: 0.10, duration: 2, monthlyCharging: 310 },
+        ];
+
+        const tierConfig = {
+            Bronze: { min: 3, max: 5, rate: 0.10, duration: 2, color: '#CD7F32', next: 'Silver', nextMin: 6 },
+            Silver: { min: 6, max: 10, rate: 0.12, duration: 2, color: '#C0C0C0', next: 'Gold', nextMin: 11 },
+            Gold: { min: 11, max: 15, rate: 0.15, duration: 3, color: '#FFD700', next: 'Platinum', nextMin: 16 },
+            Platinum: { min: 16, max: Infinity, rate: 0.20, duration: 3, color: '#E5E4E2', next: null, nextMin: null },
+        };
+
+        // Utility Components
+        const StatusBadge = ({ status }) => {
+            const styles = {
+                approved: 'bg-emerald-100 text-emerald-700 border-emerald-200',
+                pending: 'bg-amber-100 text-amber-700 border-amber-200',
+                rejected: 'bg-red-100 text-red-700 border-red-200',
+                flagged: 'bg-orange-100 text-orange-700 border-orange-200',
+            };
+            const icons = {
+                approved: <CheckCircle className="w-3 h-3" />,
+                pending: <Clock className="w-3 h-3" />,
+                rejected: <XCircle className="w-3 h-3" />,
+                flagged: <Eye className="w-3 h-3" />,
+            };
+            return (
+                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium border ${styles[status]}`}>
+                    {icons[status]}
+                    {status.charAt(0).toUpperCase() + status.slice(1)}
+                </span>
+            );
+        };
+
+        const TierBadge = ({ tier }) => {
+            const config = tierConfig[tier];
+            return (
+                <span 
+                    className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold border-2"
+                    style={{ 
+                        backgroundColor: `${config.color}20`, 
+                        borderColor: config.color,
+                        color: tier === 'Platinum' ? '#1a1a2e' : config.color 
+                    }}
+                >
+                    <Zap className="w-3 h-3" />
+                    {tier}
+                </span>
+            );
+        };
+
+        const ProgressBar = ({ current, max }) => {
+            const percentage = Math.min((current / max) * 100, 100);
+            return (
+                <div className="w-full">
+                    <div className="flex justify-between text-sm mb-1">
+                        <span className="text-slate-600">Used</span>
+                        <span className="font-semibold text-slate-800">${current.toFixed(2)} / ${max.toFixed(2)}</span>
+                    </div>
+                    <div className="h-3 bg-slate-200 rounded-full overflow-hidden">
+                        <div 
+                            className="h-full bg-gradient-to-r from-amber-500 to-amber-400 rounded-full transition-all duration-500"
+                            style={{ width: `${percentage}%` }}
+                        />
+                    </div>
+                    <p className="text-xs text-slate-500 mt-1">${(max - current).toFixed(2)} remaining</p>
+                </div>
+            );
+        };
+
+        // Customer Dashboard
+        const CustomerDashboard = ({ user, claims, setClaims, onLogout }) => {
+            const [showUpload, setShowUpload] = useState(false);
+            const [uploadedFile, setUploadedFile] = useState(null);
+            const [previewUrl, setPreviewUrl] = useState(null);
+            const [formData, setFormData] = useState({ operator: '', amount: '', date: '' });
+            const [submitting, setSubmitting] = useState(false);
+            const [submitSuccess, setSubmitSuccess] = useState(false);
+
+            const userClaims = claims.filter(c => c.participant === user.name);
+            const approvedTotal = userClaims.filter(c => c.status === 'approved').reduce((sum, c) => sum + c.rebate, 0);
+            const pendingTotal = userClaims.filter(c => c.status === 'pending').reduce((sum, c) => sum + c.rebate, 0);
+            const yearCap = 500;
+            
+            const condo = condoData.find(c => c.name === user.condo);
+            const tierInfo = tierConfig[condo.tier];
+            const ownersToNext = tierInfo.next ? tierInfo.nextMin - condo.owners : 0;
+
+            const handleFileChange = (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    setUploadedFile(file);
+                    const reader = new FileReader();
+                    reader.onloadend = () => setPreviewUrl(reader.result);
+                    reader.readAsDataURL(file);
+                }
+            };
+
+            const handleSubmit = (e) => {
+                e.preventDefault();
+                setSubmitting(true);
+                
+                setTimeout(() => {
+                    const rebateAmount = parseFloat(formData.amount) * tierInfo.rate;
+                    const newClaim = {
+                        id: claims.length + 1,
+                        date: formData.date,
+                        operator: formData.operator,
+                        amount: parseFloat(formData.amount),
+                        rebateRate: tierInfo.rate,
+                        rebate: rebateAmount,
+                        status: parseFloat(formData.amount) > 300 ? 'flagged' : 'pending',
+                        participant: user.name,
+                        condo: user.condo,
+                        vehicle: user.vehicle,
+                    };
+                    setClaims([newClaim, ...claims]);
+                    setSubmitting(false);
+                    setSubmitSuccess(true);
+                    setTimeout(() => {
+                        setShowUpload(false);
+                        setSubmitSuccess(false);
+                        setUploadedFile(null);
+                        setPreviewUrl(null);
+                        setFormData({ operator: '', amount: '', date: '' });
+                    }, 2000);
+                }, 1500);
+            };
+
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-slate-50 via-slate-100 to-amber-50">
+                    {/* Header */}
+                    <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-xl">
+                        <div className="max-w-6xl mx-auto px-4 py-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg flex items-center justify-center shadow-lg">
+                                        <Zap className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-xl font-bold tracking-tight">MotorEast</h1>
+                                        <p className="text-xs text-amber-400 font-medium">EV-Ready Condo Program</p>
+                                    </div>
+                                </div>
+                                <div className="flex items-center gap-4">
+                                    <div className="text-right hidden sm:block">
+                                        <p className="text-sm font-medium">{user.name}</p>
+                                        <p className="text-xs text-slate-400">{user.vehicle}</p>
+                                    </div>
+                                    <button onClick={onLogout} className="p-2 hover:bg-slate-700 rounded-lg transition-colors">
+                                        <LogOut className="w-5 h-5" />
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="max-w-6xl mx-auto px-4 py-8">
+                        {/* Tier Status Card */}
+                        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-6 mb-6 overflow-hidden relative">
+                            <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-amber-100 to-transparent rounded-bl-full opacity-50" />
+                            <div className="relative">
+                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                                    <div>
+                                        <div className="flex items-center gap-3 mb-2">
+                                            <TierBadge tier={condo.tier} />
+                                            <span className="text-sm text-slate-500">•</span>
+                                            <span className="text-sm text-slate-600 font-medium">{condo.name}</span>
+                                        </div>
+                                        <h2 className="text-2xl font-bold text-slate-800">
+                                            {(tierInfo.rate * 100).toFixed(0)}% Charging Rebate
+                                        </h2>
+                                        <p className="text-slate-500">{tierInfo.duration} year program • Ends Dec 2027</p>
+                                    </div>
+                                    <div className="flex items-center gap-2 bg-slate-100 rounded-xl px-4 py-3">
+                                        <Users className="w-5 h-5 text-amber-600" />
+                                        <div>
+                                            <p className="text-2xl font-bold text-slate-800">{condo.owners}</p>
+                                            <p className="text-xs text-slate-500">MotorEast owners</p>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                {tierInfo.next && (
+                                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 rounded-xl p-4 border border-amber-200">
+                                        <div className="flex items-center justify-between">
+                                            <div className="flex items-center gap-2">
+                                                <TrendingUp className="w-5 h-5 text-amber-600" />
+                                                <span className="font-medium text-slate-700">
+                                                    {ownersToNext} more {ownersToNext === 1 ? 'owner' : 'owners'} to unlock {tierInfo.next}!
+                                                </span>
+                                            </div>
+                                            <span className="text-amber-600 font-bold">{(tierConfig[tierInfo.next].rate * 100).toFixed(0)}% rebate</span>
+                                        </div>
+                                        <div className="mt-2 h-2 bg-amber-200 rounded-full overflow-hidden">
+                                            <div 
+                                                className="h-full bg-gradient-to-r from-amber-500 to-orange-500 rounded-full"
+                                                style={{ width: `${((condo.owners - tierInfo.min) / (tierInfo.nextMin - tierInfo.min)) * 100}%` }}
+                                            />
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Stats Grid */}
+                        <div className="grid md:grid-cols-3 gap-4 mb-6">
+                            <div className="bg-white rounded-xl shadow-md border border-slate-200 p-5">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-slate-500 text-sm font-medium">2024 Rebate Cap</span>
+                                    <DollarSign className="w-5 h-5 text-emerald-500" />
+                                </div>
+                                <ProgressBar current={approvedTotal} max={yearCap} />
+                            </div>
+                            
+                            <div className="bg-white rounded-xl shadow-md border border-slate-200 p-5">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-slate-500 text-sm font-medium">Total Claimed</span>
+                                    <CheckCircle className="w-5 h-5 text-emerald-500" />
+                                </div>
+                                <p className="text-3xl font-bold text-slate-800">${approvedTotal.toFixed(2)}</p>
+                                <p className="text-sm text-slate-500">{userClaims.filter(c => c.status === 'approved').length} approved claims</p>
+                            </div>
+                            
+                            <div className="bg-white rounded-xl shadow-md border border-slate-200 p-5">
+                                <div className="flex items-center justify-between mb-3">
+                                    <span className="text-slate-500 text-sm font-medium">Pending</span>
+                                    <Clock className="w-5 h-5 text-amber-500" />
+                                </div>
+                                <p className="text-3xl font-bold text-slate-800">${pendingTotal.toFixed(2)}</p>
+                                <p className="text-sm text-slate-500">{userClaims.filter(c => c.status === 'pending').length} pending review</p>
+                            </div>
+                        </div>
+
+                        {/* Submit Button */}
+                        <button
+                            onClick={() => setShowUpload(true)}
+                            className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-3 mb-6"
+                        >
+                            <Upload className="w-5 h-5" />
+                            Submit New Claim
+                        </button>
+
+                        {/* Upload Modal */}
+                        {showUpload && (
+                            <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+                                <div className="bg-white rounded-2xl shadow-2xl max-w-lg w-full max-h-[90vh] overflow-y-auto">
+                                    <div className="p-6 border-b border-slate-200">
+                                        <div className="flex items-center justify-between">
+                                            <h3 className="text-xl font-bold text-slate-800">Submit Charging Receipt</h3>
+                                            <button onClick={() => setShowUpload(false)} className="p-2 hover:bg-slate-100 rounded-lg">
+                                                <X className="w-5 h-5" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    {submitSuccess ? (
+                                        <div className="p-12 text-center">
+                                            <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                                                <CheckCircle className="w-8 h-8 text-emerald-600" />
+                                            </div>
+                                            <h4 className="text-xl font-bold text-slate-800 mb-2">Claim Submitted!</h4>
+                                            <p className="text-slate-500">Your rebate will be processed by the 15th of next month.</p>
+                                        </div>
+                                    ) : (
+                                        <form onSubmit={handleSubmit} className="p-6 space-y-6">
+                                            {/* File Upload */}
+                                            <div className={`border-2 border-dashed rounded-xl p-8 text-center transition-colors ${previewUrl ? 'border-emerald-300 bg-emerald-50' : 'border-slate-300 hover:border-amber-400'}`}>
+                                                {previewUrl ? (
+                                                    <div>
+                                                        <img src={previewUrl} alt="Receipt" className="max-h-48 mx-auto rounded-lg shadow-md mb-4" />
+                                                        <p className="text-sm text-emerald-600 font-medium">{uploadedFile?.name}</p>
+                                                        <button type="button" onClick={() => { setUploadedFile(null); setPreviewUrl(null); }} className="text-sm text-slate-500 hover:text-red-500 mt-2">Remove</button>
+                                                    </div>
+                                                ) : (
+                                                    <div>
+                                                        <Upload className="w-12 h-12 text-slate-400 mx-auto mb-4" />
+                                                        <p className="text-slate-600 font-medium mb-2">Upload your receipt</p>
+                                                        <input type="file" accept="image/*" onChange={handleFileChange} className="hidden" id="file-upload" />
+                                                        <label htmlFor="file-upload" className="inline-block bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium py-2 px-4 rounded-lg cursor-pointer">Browse Files</label>
+                                                    </div>
+                                                )}
+                                            </div>
+
+                                            {/* Form Fields */}
+                                            <div className="grid gap-4">
+                                                <div>
+                                                    <label className="block text-sm font-medium text-slate-700 mb-2">Charging Operator</label>
+                                                    <select value={formData.operator} onChange={(e) => setFormData({ ...formData, operator: e.target.value })} required className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none">
+                                                        <option value="">Select operator...</option>
+                                                        <option value="Charge+">Charge+</option>
+                                                        <option value="SP Group">SP Group</option>
+                                                        <option value="Shell Recharge">Shell Recharge</option>
+                                                        <option value="CDG Engie">CDG Engie</option>
+                                                        <option value="Volt">Volt</option>
+                                                    </select>
+                                                </div>
+                                                <div className="grid grid-cols-2 gap-4">
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-slate-700 mb-2">Amount (S$)</label>
+                                                        <input type="number" step="0.01" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} required placeholder="0.00" className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none" />
+                                                    </div>
+                                                    <div>
+                                                        <label className="block text-sm font-medium text-slate-700 mb-2">Charge Date</label>
+                                                        <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none" />
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            {formData.amount && (
+                                                <div className="bg-amber-50 rounded-xl p-4 border border-amber-200">
+                                                    <div className="flex items-center justify-between">
+                                                        <span className="text-slate-600">Estimated Rebate ({(tierInfo.rate * 100).toFixed(0)}%)</span>
+                                                        <span className="text-xl font-bold text-amber-600">${(parseFloat(formData.amount || 0) * tierInfo.rate).toFixed(2)}</span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            <button type="submit" disabled={!uploadedFile || !formData.operator || !formData.amount || !formData.date || submitting} className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-slate-300 disabled:to-slate-400 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                                                {submitting ? (
+                                                    <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Processing...</>
+                                                ) : (
+                                                    <><Upload className="w-5 h-5" />Submit Claim</>
+                                                )}
+                                            </button>
+                                        </form>
+                                    )}
+                                </div>
+                            </div>
+                        )}
+
+                        {/* Recent Claims */}
+                        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden">
+                            <div className="p-6 border-b border-slate-200">
+                                <h3 className="text-lg font-bold text-slate-800">Recent Claims</h3>
+                            </div>
+                            <div className="divide-y divide-slate-100">
+                                {userClaims.length === 0 ? (
+                                    <div className="p-12 text-center">
+                                        <FileText className="w-12 h-12 text-slate-300 mx-auto mb-4" />
+                                        <p className="text-slate-500">No claims yet. Submit your first charging receipt!</p>
+                                    </div>
+                                ) : (
+                                    userClaims.map(claim => (
+                                        <div key={claim.id} className="p-4 hover:bg-slate-50 transition-colors">
+                                            <div className="flex items-center justify-between">
+                                                <div className="flex items-center gap-4">
+                                                    <div className="w-12 h-12 bg-slate-100 rounded-xl flex items-center justify-center">
+                                                        <Zap className="w-6 h-6 text-amber-500" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="font-medium text-slate-800">{claim.operator}</p>
+                                                        <p className="text-sm text-slate-500">{claim.date}</p>
+                                                    </div>
+                                                </div>
+                                                <div className="text-right">
+                                                    <p className="font-bold text-slate-800">${claim.amount.toFixed(2)}</p>
+                                                    <div className="flex items-center gap-2 justify-end">
+                                                        <span className="text-sm text-emerald-600 font-medium">+${claim.rebate.toFixed(2)}</span>
+                                                        <StatusBadge status={claim.status} />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    ))
+                                )}
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        // Admin Dashboard
+        const AdminDashboard = ({ claims, setClaims, onLogout }) => {
+            const [filter, setFilter] = useState('all');
+            const [searchTerm, setSearchTerm] = useState('');
+            const [selectedClaim, setSelectedClaim] = useState(null);
+
+            const filteredClaims = claims.filter(claim => {
+                const matchesFilter = filter === 'all' || claim.status === filter;
+                const matchesSearch = claim.participant.toLowerCase().includes(searchTerm.toLowerCase()) || claim.condo.toLowerCase().includes(searchTerm.toLowerCase());
+                return matchesFilter && matchesSearch;
+            });
+
+            const pendingCount = claims.filter(c => c.status === 'pending').length;
+            const flaggedCount = claims.filter(c => c.status === 'flagged').length;
+            const readyForPayout = claims.filter(c => c.status === 'approved');
+            const payoutTotal = readyForPayout.reduce((sum, c) => sum + c.rebate, 0);
+
+            const handleApprove = (id) => {
+                setClaims(claims.map(c => c.id === id ? { ...c, status: 'approved' } : c));
+                setSelectedClaim(null);
+            };
+
+            const handleReject = (id) => {
+                setClaims(claims.map(c => c.id === id ? { ...c, status: 'rejected' } : c));
+                setSelectedClaim(null);
+            };
+
+            const downloadCSV = () => {
+                const approvedClaims = claims.filter(c => c.status === 'approved');
+                const headers = ['Participant', 'Condo', 'Vehicle', 'Date', 'Operator', 'Amount', 'Rebate Rate', 'Rebate Amount'];
+                const rows = approvedClaims.map(c => [c.participant, c.condo, c.vehicle, c.date, c.operator, c.amount.toFixed(2), (c.rebateRate * 100).toFixed(0) + '%', c.rebate.toFixed(2)]);
+                const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+                const blob = new Blob([csvContent], { type: 'text/csv' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `motoreast-rebates-${new Date().toISOString().split('T')[0]}.csv`;
+                a.click();
+            };
+
+            return (
+                <div className="min-h-screen bg-slate-100">
+                    <header className="bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900 text-white shadow-xl">
+                        <div className="max-w-7xl mx-auto px-4 py-4">
+                            <div className="flex items-center justify-between">
+                                <div className="flex items-center gap-3">
+                                    <div className="w-10 h-10 bg-gradient-to-br from-amber-400 to-amber-600 rounded-lg flex items-center justify-center">
+                                        <Zap className="w-6 h-6 text-white" />
+                                    </div>
+                                    <div>
+                                        <h1 className="text-xl font-bold">MotorEast Admin</h1>
+                                        <p className="text-xs text-amber-400 font-medium">Rebate Management Portal</p>
+                                    </div>
+                                </div>
+                                <button onClick={onLogout} className="flex items-center gap-2 px-4 py-2 hover:bg-slate-700 rounded-lg">
+                                    <LogOut className="w-5 h-5" /><span className="hidden sm:inline">Logout</span>
+                                </button>
+                            </div>
+                        </div>
+                    </header>
+
+                    <main className="max-w-7xl mx-auto px-4 py-8">
+                        {/* Stats */}
+                        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                            <div className="bg-white rounded-xl shadow-md p-5 border-l-4 border-amber-500">
+                                <p className="text-sm text-slate-500">Pending Review</p>
+                                <p className="text-3xl font-bold text-slate-800">{pendingCount}</p>
+                            </div>
+                            <div className="bg-white rounded-xl shadow-md p-5 border-l-4 border-orange-500">
+                                <p className="text-sm text-slate-500">Flagged</p>
+                                <p className="text-3xl font-bold text-slate-800">{flaggedCount}</p>
+                            </div>
+                            <div className="bg-white rounded-xl shadow-md p-5 border-l-4 border-emerald-500">
+                                <p className="text-sm text-slate-500">Ready for Payout</p>
+                                <p className="text-3xl font-bold text-slate-800">{readyForPayout.length}</p>
+                            </div>
+                            <div className="bg-white rounded-xl shadow-md p-5 border-l-4 border-blue-500">
+                                <p className="text-sm text-slate-500">Payout Amount</p>
+                                <p className="text-3xl font-bold text-slate-800">${payoutTotal.toFixed(2)}</p>
+                            </div>
+                        </div>
+
+                        {/* Condo Summary */}
+                        <div className="bg-white rounded-xl shadow-md mb-6 overflow-hidden">
+                            <div className="p-5 border-b border-slate-200">
+                                <h3 className="text-lg font-bold text-slate-800">Condo Summary</h3>
+                            </div>
+                            <table className="w-full">
+                                <thead className="bg-slate-50">
+                                    <tr>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Condo</th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Owners</th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Tier</th>
+                                        <th className="px-6 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Monthly Claims</th>
+                                    </tr>
+                                </thead>
+                                <tbody className="divide-y divide-slate-100">
+                                    {condoData.map((condo, idx) => (
+                                        <tr key={idx} className="hover:bg-slate-50">
+                                            <td className="px-6 py-4 font-medium text-slate-800">{condo.name}</td>
+                                            <td className="px-6 py-4 text-slate-600">{condo.owners}</td>
+                                            <td className="px-6 py-4"><TierBadge tier={condo.tier} /></td>
+                                            <td className="px-6 py-4 text-slate-600">${condo.monthlyCharging}</td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        {/* Claims Table */}
+                        <div className="bg-white rounded-xl shadow-md overflow-hidden">
+                            <div className="p-5 border-b border-slate-200">
+                                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                                    <h3 className="text-lg font-bold text-slate-800">All Claims</h3>
+                                    <div className="flex flex-col sm:flex-row gap-3">
+                                        <div className="relative">
+                                            <Search className="w-5 h-5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
+                                            <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-amber-500 outline-none w-full sm:w-48" />
+                                        </div>
+                                        <select value={filter} onChange={(e) => setFilter(e.target.value)} className="border border-slate-300 rounded-lg px-4 py-2">
+                                            <option value="all">All Status</option>
+                                            <option value="pending">Pending</option>
+                                            <option value="flagged">Flagged</option>
+                                            <option value="approved">Approved</option>
+                                            <option value="rejected">Rejected</option>
+                                        </select>
+                                        <button onClick={downloadCSV} className="flex items-center gap-2 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-2 px-4 rounded-lg">
+                                            <Download className="w-5 h-5" />Export CSV
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead className="bg-slate-50">
+                                        <tr>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Date</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Participant</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Condo</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Amount</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Rebate</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Status</th>
+                                            <th className="px-4 py-3 text-left text-xs font-semibold text-slate-500 uppercase">Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {filteredClaims.map(claim => (
+                                            <tr key={claim.id} className="hover:bg-slate-50">
+                                                <td className="px-4 py-4 text-sm text-slate-600">{claim.date}</td>
+                                                <td className="px-4 py-4">
+                                                    <p className="font-medium text-slate-800">{claim.participant}</p>
+                                                    <p className="text-xs text-slate-500">{claim.vehicle}</p>
+                                                </td>
+                                                <td className="px-4 py-4 text-sm text-slate-600">{claim.condo}</td>
+                                                <td className="px-4 py-4 text-sm font-medium text-slate-800">${claim.amount.toFixed(2)}</td>
+                                                <td className="px-4 py-4 text-sm font-medium text-emerald-600">${claim.rebate.toFixed(2)}</td>
+                                                <td className="px-4 py-4"><StatusBadge status={claim.status} /></td>
+                                                <td className="px-4 py-4">
+                                                    {(claim.status === 'pending' || claim.status === 'flagged') && (
+                                                        <div className="flex items-center gap-2">
+                                                            <button onClick={() => handleApprove(claim.id)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Approve">
+                                                                <CheckCircle className="w-4 h-4" />
+                                                            </button>
+                                                            <button onClick={() => handleReject(claim.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Reject">
+                                                                <XCircle className="w-4 h-4" />
+                                                            </button>
+                                                        </div>
+                                                    )}
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </main>
+                </div>
+            );
+        };
+
+        // Login Screen
+        const LoginScreen = ({ onLogin }) => {
+            const [mode, setMode] = useState('customer');
+            
+            return (
+                <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
+                    <div className="absolute inset-0 overflow-hidden">
+                        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl" />
+                        <div className="absolute bottom-1/4 right-1/4 w-96 h-96 bg-orange-500/10 rounded-full blur-3xl" />
+                    </div>
+                    
+                    <div className="relative bg-white/10 backdrop-blur-xl rounded-3xl shadow-2xl border border-white/20 p-8 max-w-md w-full">
+                        <div className="text-center mb-8">
+                            <div className="w-16 h-16 bg-gradient-to-br from-amber-400 to-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                                <Zap className="w-8 h-8 text-white" />
+                            </div>
+                            <h1 className="text-3xl font-bold text-white mb-2">MotorEast</h1>
+                            <p className="text-amber-400 font-medium">EV-Ready Condo Program</p>
+                        </div>
+                        
+                        <div className="flex bg-white/10 rounded-xl p-1 mb-6">
+                            <button onClick={() => setMode('customer')} className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${mode === 'customer' ? 'bg-amber-500 text-white shadow-lg' : 'text-white/70 hover:text-white'}`}>Customer</button>
+                            <button onClick={() => setMode('admin')} className={`flex-1 py-2 px-4 rounded-lg font-medium transition-all ${mode === 'admin' ? 'bg-amber-500 text-white shadow-lg' : 'text-white/70 hover:text-white'}`}>Admin</button>
+                        </div>
+                        
+                        {mode === 'customer' ? (
+                            <div className="space-y-4">
+                                <p className="text-white/60 text-sm text-center mb-4">Demo: Click any customer to login</p>
+                                
+                                <button onClick={() => onLogin({ type: 'customer', name: 'John Tan', vehicle: 'SMA1234B', condo: 'The Reef @ KPE' })} className="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl p-4 text-left transition-all group">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-medium text-white">John Tan</p>
+                                            <p className="text-sm text-white/60">The Reef @ KPE • SMA1234B</p>
+                                        </div>
+                                        <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-amber-400" />
+                                    </div>
+                                </button>
+                                
+                                <button onClick={() => onLogin({ type: 'customer', name: 'David Wong', vehicle: 'SMC9012D', condo: 'Parc Esta' })} className="w-full bg-white/10 hover:bg-white/20 border border-white/20 rounded-xl p-4 text-left transition-all group">
+                                    <div className="flex items-center justify-between">
+                                        <div>
+                                            <p className="font-medium text-white">David Wong</p>
+                                            <p className="text-sm text-white/60">Parc Esta • SMC9012D</p>
+                                        </div>
+                                        <ChevronRight className="w-5 h-5 text-white/40 group-hover:text-amber-400" />
+                                    </div>
+                                </button>
+                            </div>
+                        ) : (
+                            <button onClick={() => onLogin({ type: 'admin' })} className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold py-4 px-6 rounded-xl shadow-lg">
+                                Login as Admin
+                            </button>
+                        )}
+                        
+                        <p className="text-white/40 text-xs text-center mt-6">Demo version • Data resets on refresh</p>
+                    </div>
+                </div>
+            );
+        };
+
+        // Main App
+        function App() {
+            const [user, setUser] = useState(null);
+            const [claims, setClaims] = useState(initialClaims);
+            
+            if (!user) return <LoginScreen onLogin={setUser} />;
+            if (user.type === 'admin') return <AdminDashboard claims={claims} setClaims={setClaims} onLogout={() => setUser(null)} />;
+            return <CustomerDashboard user={user} claims={claims} setClaims={setClaims} onLogout={() => setUser(null)} />;
+        }
+
+        ReactDOM.render(<App />, document.getElementById('root'));
+    </script>
+</body>
+</html>
