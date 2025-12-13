@@ -135,8 +135,8 @@
                     .from('claims')
                     .select(`
                         *,
-                        profile:profiles(name, email, vehicle_number),
-                        condo:condos(name, tier)
+                        profile:profiles!user_id(name, email, vehicle_number),
+                        condo:condos!condo_id(name, tier)
                     `)
                     .order('created_at', { ascending: false });
                 if (error) throw error;
