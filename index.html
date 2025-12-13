@@ -829,26 +829,52 @@ BYD MotorEast Singapore`;
                 }
             };
 
-            const handleSubmit = (e) => {
+            const handleSubmit = async (e) => {
                 e.preventDefault();
                 setSubmitting(true);
-                
-                setTimeout(() => {
-                    const rebateAmount = parseFloat(formData.amount) * tierInfo.rate;
-                    const newClaim = {
-                        id: claims.length + 1,
-                        date: formData.date,
-                        operator: formData.operator,
-                        amount: parseFloat(formData.amount),
-                        rebateRate: tierInfo.rate,
-                        rebate: rebateAmount,
-                        status: parseFloat(formData.amount) > 300 ? 'flagged' : 'pending',
-                        participant: user.name,
-                        condo: user.condo,
-                        vehicle: user.vehicle,
-                    };
-                    setClaims([newClaim, ...claims]);
-                    setSubmitting(false);
+
+                try {
+                    if (USE_SUPABASE) {
+                        // Save to Supabase
+                        const newClaim = await db.submitClaim(
+                            { date: formData.date, operator: formData.operator, amount: parseFloat(formData.amount) },
+                            user.id,
+                            user.condoId,
+                            user.rebateRate || tierInfo.rate
+                        );
+
+                        // Add to local state for immediate display
+                        const claimForDisplay = {
+                            id: newClaim.id,
+                            date: newClaim.charge_date,
+                            operator: newClaim.operator,
+                            amount: parseFloat(newClaim.amount),
+                            rebateRate: parseFloat(newClaim.rebate_rate),
+                            rebate: parseFloat(newClaim.rebate_amount),
+                            status: newClaim.status,
+                            participant: user.name,
+                            condo: user.condo,
+                            vehicle: user.vehicle,
+                        };
+                        setClaims([claimForDisplay, ...claims]);
+                    } else {
+                        // Demo mode - local state only
+                        const rebateAmount = parseFloat(formData.amount) * tierInfo.rate;
+                        const newClaim = {
+                            id: claims.length + 1,
+                            date: formData.date,
+                            operator: formData.operator,
+                            amount: parseFloat(formData.amount),
+                            rebateRate: tierInfo.rate,
+                            rebate: rebateAmount,
+                            status: parseFloat(formData.amount) > 300 ? 'flagged' : 'pending',
+                            participant: user.name,
+                            condo: user.condo,
+                            vehicle: user.vehicle,
+                        };
+                        setClaims([newClaim, ...claims]);
+                    }
+
                     setSubmitSuccess(true);
                     setTimeout(() => {
                         setShowUpload(false);
@@ -857,7 +883,11 @@ BYD MotorEast Singapore`;
                         setPreviewUrl(null);
                         setFormData({ operator: '', amount: '', date: '' });
                     }, 2000);
-                }, 1500);
+                } catch (err) {
+                    console.error('Failed to submit claim:', err);
+                    alert('Failed to submit claim: ' + err.message);
+                }
+                setSubmitting(false);
             };
 
             return (
