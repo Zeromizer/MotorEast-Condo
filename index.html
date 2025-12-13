@@ -1157,7 +1157,7 @@ BYD MotorEast Singapore`;
 
             const filteredClaims = claims.filter(claim => {
                 const matchesFilter = filter === 'all' || claim.status === filter;
-                const matchesSearch = claim.participant.toLowerCase().includes(searchTerm.toLowerCase()) || claim.condo.toLowerCase().includes(searchTerm.toLowerCase());
+                const matchesSearch = (claim.participant || '').toLowerCase().includes(searchTerm.toLowerCase()) || (claim.condo || '').toLowerCase().includes(searchTerm.toLowerCase());
                 return matchesFilter && matchesSearch;
             });
 
@@ -1179,7 +1179,7 @@ BYD MotorEast Singapore`;
             const downloadCSV = () => {
                 const approvedClaims = claims.filter(c => c.status === 'approved');
                 const headers = ['Participant', 'Condo', 'Vehicle', 'Date', 'Operator', 'Amount', 'Rebate Rate', 'Rebate Amount'];
-                const rows = approvedClaims.map(c => [c.participant, c.condo, c.vehicle, c.date, c.operator, c.amount.toFixed(2), (c.rebateRate * 100).toFixed(0) + '%', c.rebate.toFixed(2)]);
+                const rows = approvedClaims.map(c => [c.participant || '', c.condo || '', c.vehicle || '', c.date || '', c.operator || '', (c.amount || 0).toFixed(2), ((c.rebateRate || 0) * 100).toFixed(0) + '%', (c.rebate || 0).toFixed(2)]);
                 const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
                 const blob = new Blob([csvContent], { type: 'text/csv' });
                 const url = URL.createObjectURL(blob);
