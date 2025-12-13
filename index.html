@@ -9,6 +9,8 @@
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+    <!-- Supabase Client -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
         body { font-family: 'Inter', sans-serif; }
@@ -18,9 +20,184 @@
 </head>
 <body>
     <div id="root"></div>
-    
+
     <script type="text/babel">
         const { useState, useCallback, useEffect } = React;
+
+        // ============================================
+        // SUPABASE CONFIGURATION
+        // ============================================
+        // The anon key is safe to expose - RLS policies protect your data
+        const SUPABASE_URL = 'https://sbyhlwkiuoeuackkegfv.supabase.co';
+        const SUPABASE_ANON_KEY = 'YOUR_ANON_KEY_HERE'; // Replace with your anon key from Supabase Dashboard > Settings > API
+
+        // Initialize Supabase client
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Set to true once you've configured Supabase and run the schema
+        const USE_SUPABASE = false; // Change to true when ready
+
+        // ============================================
+        // SUPABASE API FUNCTIONS
+        // ============================================
+        const db = {
+            // AUTH
+            async signUp(email, password, metadata) {
+                const { data, error } = await supabase.auth.signUp({
+                    email,
+                    password,
+                    options: { data: metadata }
+                });
+                if (error) throw error;
+                return data;
+            },
+
+            async signIn(email, password) {
+                const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+                if (error) throw error;
+                return data;
+            },
+
+            async signOut() {
+                const { error } = await supabase.auth.signOut();
+                if (error) throw error;
+            },
+
+            async getSession() {
+                const { data: { session } } = await supabase.auth.getSession();
+                return session;
+            },
+
+            async getProfile(userId) {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .select('*, condo:condos(*)')
+                    .eq('id', userId)
+                    .single();
+                if (error) throw error;
+                return data;
+            },
+
+            async updateProfile(userId, updates) {
+                const { data, error } = await supabase
+                    .from('profiles')
+                    .update(updates)
+                    .eq('id', userId)
+                    .select()
+                    .single();
+                if (error) throw error;
+                return data;
+            },
+
+            // CONDOS
+            async getCondos() {
+                const { data, error } = await supabase
+                    .from('condos')
+                    .select('*')
+                    .order('name');
+                if (error) throw error;
+                return data;
+            },
+
+            // CLAIMS
+            async submitClaim(claimData, userId, condoId, rebateRate) {
+                const rebateAmount = claimData.amount * rebateRate;
+                const { data, error } = await supabase
+                    .from('claims')
+                    .insert({
+                        user_id: userId,
+                        condo_id: condoId,
+                        charge_date: claimData.date,
+                        operator: claimData.operator,
+                        amount: claimData.amount,
+                        rebate_rate: rebateRate,
+                        rebate_amount: rebateAmount,
+                        status: claimData.amount > 300 ? 'flagged' : 'pending'
+                    })
+                    .select()
+                    .single();
+                if (error) throw error;
+                return data;
+            },
+
+            async getUserClaims(userId) {
+                const { data, error } = await supabase
+                    .from('claims')
+                    .select('*, condo:condos(name, tier)')
+                    .eq('user_id', userId)
+                    .order('charge_date', { ascending: false });
+                if (error) throw error;
+                return data;
+            },
+
+            async getAllClaims() {
+                const { data, error } = await supabase
+                    .from('claims')
+                    .select(`
+                        *,
+                        profile:profiles(name, email, vehicle_number),
+                        condo:condos(name, tier)
+                    `)
+                    .order('created_at', { ascending: false });
+                if (error) throw error;
+                return data.map(c => ({
+                    id: c.id,
+                    date: c.charge_date,
+                    operator: c.operator,
+                    amount: parseFloat(c.amount),
+                    rebateRate: parseFloat(c.rebate_rate),
+                    rebate: parseFloat(c.rebate_amount),
+                    status: c.status,
+                    participant: c.profile?.name,
+                    email: c.profile?.email,
+                    vehicle: c.profile?.vehicle_number,
+                    condo: c.condo?.name
+                }));
+            },
+
+            async updateClaimStatus(claimId, status, reviewerId) {
+                const { data, error } = await supabase
+                    .from('claims')
+                    .update({
+                        status,
+                        reviewed_by: reviewerId,
+                        reviewed_at: new Date().toISOString()
+                    })
+                    .eq('id', claimId)
+                    .select()
+                    .single();
+                if (error) throw error;
+                return data;
+            },
+
+            async getYTDRebate(userId) {
+                const year = new Date().getFullYear();
+                const { data, error } = await supabase
+                    .from('claims')
+                    .select('rebate_amount')
+                    .eq('user_id', userId)
+                    .eq('status', 'approved')
+                    .gte('charge_date', `${year}-01-01`);
+                if (error) throw error;
+                return data.reduce((sum, c) => sum + parseFloat(c.rebate_amount), 0);
+            },
+
+            // STORAGE
+            async uploadReceipt(userId, file) {
+                const fileName = `${userId}/${Date.now()}-${file.name}`;
+                const { data, error } = await supabase.storage
+                    .from('receipts')
+                    .upload(fileName, file);
+                if (error) throw error;
+                return data.path;
+            },
+
+            async getReceiptUrl(path) {
+                if (!path) return null;
+                const { data } = supabase.storage.from('receipts').getPublicUrl(path);
+                return data.publicUrl;
+            }
+        };
 
         // Icon components using Lucide
         const Icon = ({ name, className }) => {
