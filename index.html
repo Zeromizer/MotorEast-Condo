@@ -813,9 +813,10 @@ BYD MotorEast Singapore`;
             const approvedTotal = userClaims.filter(c => c.status === 'approved').reduce((sum, c) => sum + c.rebate, 0);
             const pendingTotal = userClaims.filter(c => c.status === 'pending').reduce((sum, c) => sum + c.rebate, 0);
             const yearCap = 500;
-            
-            const condo = condoData.find(c => c.name === user.condo);
-            const tierInfo = tierConfig[condo.tier];
+
+            // Handle case where user has no condo assigned
+            const condo = condoData.find(c => c.name === user.condo) || { name: 'Not Assigned', tier: 'Bronze', owners: 0, rate: 0.10 };
+            const tierInfo = tierConfig[condo.tier] || tierConfig['Bronze'];
             const ownersToNext = tierInfo.next ? tierInfo.nextMin - condo.owners : 0;
 
             const handleFileChange = (e) => {
