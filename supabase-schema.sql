@@ -199,12 +199,13 @@ USING (EXISTS (SELECT 1 FROM profiles WHERE id = auth.uid() AND role = 'admin'))
 CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
-    INSERT INTO public.profiles (id, email, name, vehicle_number, role)
+    INSERT INTO public.profiles (id, email, name, vehicle_number, condo_id, role)
     VALUES (
         NEW.id,
         NEW.email,
         COALESCE(NEW.raw_user_meta_data->>'name', 'New User'),
         COALESCE(NEW.raw_user_meta_data->>'vehicle_number', ''),
+        (NEW.raw_user_meta_data->>'condo_id')::uuid,
         COALESCE(NEW.raw_user_meta_data->>'role', 'customer')
     );
     RETURN NEW;
