@@ -38,6 +38,93 @@
         const USE_SUPABASE = true; // LIVE MODE ENABLED
 
         // ============================================
+        // GEMINI AI CONFIGURATION (Free tier: 1,500 requests/day)
+        // Get your free API key at: https://makersuite.google.com/app/apikey
+        // ============================================
+        const GEMINI_API_KEY = 'AIzaSyCr_0n4mpoqjxd2g9JoKdJCYU8lVP5RYkw';
+        const GEMINI_MODEL = 'gemini-2.5-flash-preview-05-20'; // Gemini 2.5 Flash
+
+        // Receipt analysis function using Gemini Vision
+        const analyzeReceipt = async (file) => {
+            if (!GEMINI_API_KEY) {
+                return { error: 'Gemini API key not configured' };
+            }
+
+            try {
+                // Convert file to base64
+                const base64 = await new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result.split(',')[1]);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
+
+                const mimeType = file.type || 'image/jpeg';
+
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${GEMINI_API_KEY}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{
+                            parts: [
+                                {
+                                    text: `Analyze this receipt image and extract information. Respond ONLY with a valid JSON object (no markdown, no code blocks), with these exact fields:
+{
+  "isEVCharging": true/false (is this a receipt for electric vehicle charging?),
+  "confidence": "high"/"medium"/"low" (how confident are you this is an EV charging receipt?),
+  "amount": number or null (total amount paid in SGD, just the number),
+  "currency": "SGD" or detected currency,
+  "operator": "string" or null (charging operator/provider name like "Charge+", "SP Group", "Shell Recharge", "CDG Engie", "BlueSG", etc.),
+  "date": "YYYY-MM-DD" or null (transaction date),
+  "location": "string" or null (charging location if visible),
+  "vehicleInfo": "string" or null (any vehicle/registration info if visible),
+  "reason": "string" (brief explanation of why this is/isn't an EV charging receipt)
+}
+
+Important:
+- Singapore Dollar (SGD/S$/$) is the expected currency
+- Common Singapore EV charging operators: Charge+, SP Group, Shell Recharge, CDG Engie, BlueSG, Volt, Greenlots
+- Look for keywords: kWh, charging, EV, electric vehicle, charging station`
+                                },
+                                {
+                                    inline_data: {
+                                        mime_type: mimeType,
+                                        data: base64
+                                    }
+                                }
+                            ]
+                        }],
+                        generationConfig: {
+                            temperature: 0.1,
+                            maxOutputTokens: 1024
+                        }
+                    })
+                });
+
+                const data = await response.json();
+
+                if (data.error) {
+                    throw new Error(data.error.message || 'Gemini API error');
+                }
+
+                const text = data.candidates?.[0]?.content?.parts?.[0]?.text || '';
+
+                // Parse JSON from response (handle potential markdown code blocks)
+                let jsonStr = text.trim();
+                if (jsonStr.startsWith('```')) {
+                    jsonStr = jsonStr.replace(/```json?\n?/g, '').replace(/```/g, '');
+                }
+
+                const result = JSON.parse(jsonStr);
+                return { success: true, data: result };
+
+            } catch (err) {
+                console.error('Receipt analysis error:', err);
+                return { error: err.message || 'Failed to analyze receipt' };
+            }
+        };
+
+        // ============================================
         // SUPABASE API FUNCTIONS
         // ============================================
         const db = {
@@ -822,6 +909,8 @@ BYD MotorEast Singapore`;
             const [formData, setFormData] = useState({ operator: '', amount: '', date: '' });
             const [submitting, setSubmitting] = useState(false);
             const [submitSuccess, setSubmitSuccess] = useState(false);
+            const [aiAnalysis, setAiAnalysis] = useState(null); // AI receipt analysis result
+            const [analyzing, setAnalyzing] = useState(false);
 
             const userClaims = claims.filter(c => c.participant === user.name);
             const approvedTotal = userClaims.filter(c => c.status === 'approved').reduce((sum, c) => sum + c.rebate, 0);
@@ -833,13 +922,46 @@ BYD MotorEast Singapore`;
             const tierInfo = tierConfig[condo.tier] || tierConfig['Bronze'];
             const ownersToNext = tierInfo.next ? tierInfo.nextMin - condo.owners : 0;
 
-            const handleFileChange = (e) => {
+            // Known operators for matching
+            const knownOperators = ['Charge+', 'SP Group', 'Shell Recharge', 'CDG Engie', 'Volt', 'BlueSG', 'Greenlots'];
+
+            const handleFileChange = async (e) => {
                 const file = e.target.files[0];
                 if (file) {
                     setUploadedFile(file);
-                    const reader = new FileReader();
-                    reader.onloadend = () => setPreviewUrl(reader.result);
-                    reader.readAsDataURL(file);
+                    setAiAnalysis(null);
+
+                    // Generate preview for images
+                    if (file.type.startsWith('image/')) {
+                        const reader = new FileReader();
+                        reader.onloadend = () => setPreviewUrl(reader.result);
+                        reader.readAsDataURL(file);
+                    } else {
+                        setPreviewUrl(null);
+                    }
+
+                    // Run AI analysis if API key is configured
+                    if (GEMINI_API_KEY) {
+                        setAnalyzing(true);
+                        const result = await analyzeReceipt(file);
+                        setAnalyzing(false);
+
+                        if (result.success && result.data) {
+                            setAiAnalysis(result.data);
+
+                            // Auto-fill form with AI results
+                            const aiData = result.data;
+                            setFormData(prev => ({
+                                operator: aiData.operator && knownOperators.some(op => aiData.operator.toLowerCase().includes(op.toLowerCase()))
+                                    ? knownOperators.find(op => aiData.operator.toLowerCase().includes(op.toLowerCase()))
+                                    : aiData.operator || prev.operator,
+                                amount: aiData.amount ? String(aiData.amount) : prev.amount,
+                                date: aiData.date || prev.date
+                            }));
+                        } else {
+                            setAiAnalysis({ error: result.error });
+                        }
+                    }
                 }
             };
 
@@ -897,6 +1019,7 @@ BYD MotorEast Singapore`;
                         setUploadedFile(null);
                         setPreviewUrl(null);
                         setFormData({ operator: '', amount: '', date: '' });
+                        setAiAnalysis(null);
                     }, 2000);
                 } catch (err) {
                     console.error('Failed to submit claim:', err);
@@ -1035,7 +1158,7 @@ BYD MotorEast Singapore`;
                                     <div className="p-6 border-b border-slate-200">
                                         <div className="flex items-center justify-between">
                                             <h3 className="text-xl font-bold text-slate-800">Submit Charging Receipt</h3>
-                                            <button onClick={() => setShowUpload(false)} className="p-2 hover:bg-slate-100 rounded-lg">
+                                            <button onClick={() => { setShowUpload(false); setUploadedFile(null); setPreviewUrl(null); setFormData({ operator: '', amount: '', date: '' }); setAiAnalysis(null); }} className="p-2 hover:bg-slate-100 rounded-lg">
                                                 <X className="w-5 h-5" />
                                             </button>
                                         </div>
@@ -1076,10 +1199,51 @@ BYD MotorEast Singapore`;
                                                 )}
                                             </div>
 
+                                            {/* AI Analysis Status */}
+                                            {analyzing && (
+                                                <div className="bg-blue-50 border border-blue-200 rounded-xl p-4">
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="w-5 h-5 border-2 border-blue-500 border-t-transparent rounded-full animate-spin" />
+                                                        <span className="text-blue-700 font-medium">Analyzing receipt with AI...</span>
+                                                    </div>
+                                                </div>
+                                            )}
+
+                                            {aiAnalysis && !analyzing && (
+                                                <div className={`rounded-xl p-4 border ${aiAnalysis.error ? 'bg-red-50 border-red-200' : aiAnalysis.isEVCharging ? 'bg-emerald-50 border-emerald-200' : 'bg-orange-50 border-orange-200'}`}>
+                                                    {aiAnalysis.error ? (
+                                                        <div className="flex items-center gap-2 text-red-700">
+                                                            <AlertTriangle className="w-5 h-5" />
+                                                            <span>AI analysis failed: {aiAnalysis.error}</span>
+                                                        </div>
+                                                    ) : aiAnalysis.isEVCharging ? (
+                                                        <div>
+                                                            <div className="flex items-center gap-2 text-emerald-700 font-medium mb-2">
+                                                                <CheckCircle className="w-5 h-5" />
+                                                                <span>EV Charging Receipt Verified</span>
+                                                                <span className={`text-xs px-2 py-0.5 rounded-full ${aiAnalysis.confidence === 'high' ? 'bg-emerald-200' : aiAnalysis.confidence === 'medium' ? 'bg-amber-200 text-amber-700' : 'bg-slate-200 text-slate-600'}`}>
+                                                                    {aiAnalysis.confidence} confidence
+                                                                </span>
+                                                            </div>
+                                                            <p className="text-sm text-emerald-600">{aiAnalysis.reason}</p>
+                                                            {aiAnalysis.location && <p className="text-xs text-slate-500 mt-1">Location: {aiAnalysis.location}</p>}
+                                                        </div>
+                                                    ) : (
+                                                        <div>
+                                                            <div className="flex items-center gap-2 text-orange-700 font-medium mb-2">
+                                                                <AlertTriangle className="w-5 h-5" />
+                                                                <span>Not an EV Charging Receipt</span>
+                                                            </div>
+                                                            <p className="text-sm text-orange-600">{aiAnalysis.reason}</p>
+                                                        </div>
+                                                    )}
+                                                </div>
+                                            )}
+
                                             {/* Form Fields */}
                                             <div className="grid gap-4">
                                                 <div>
-                                                    <label className="block text-sm font-medium text-slate-700 mb-2">Charging Operator</label>
+                                                    <label className="block text-sm font-medium text-slate-700 mb-2">Charging Operator {aiAnalysis?.operator && <span className="text-emerald-500 text-xs">(AI detected)</span>}</label>
                                                     <select value={formData.operator} onChange={(e) => setFormData({ ...formData, operator: e.target.value })} required className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none">
                                                         <option value="">Select operator...</option>
                                                         <option value="Charge+">Charge+</option>
@@ -1087,15 +1251,18 @@ BYD MotorEast Singapore`;
                                                         <option value="Shell Recharge">Shell Recharge</option>
                                                         <option value="CDG Engie">CDG Engie</option>
                                                         <option value="Volt">Volt</option>
+                                                        <option value="BlueSG">BlueSG</option>
+                                                        <option value="Greenlots">Greenlots</option>
+                                                        <option value="Other">Other</option>
                                                     </select>
                                                 </div>
                                                 <div className="grid grid-cols-2 gap-4">
                                                     <div>
-                                                        <label className="block text-sm font-medium text-slate-700 mb-2">Amount (S$)</label>
+                                                        <label className="block text-sm font-medium text-slate-700 mb-2">Amount (S$) {aiAnalysis?.amount && <span className="text-emerald-500 text-xs">(AI detected)</span>}</label>
                                                         <input type="number" step="0.01" value={formData.amount} onChange={(e) => setFormData({ ...formData, amount: e.target.value })} required placeholder="0.00" className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none" />
                                                     </div>
                                                     <div>
-                                                        <label className="block text-sm font-medium text-slate-700 mb-2">Charge Date</label>
+                                                        <label className="block text-sm font-medium text-slate-700 mb-2">Charge Date {aiAnalysis?.date && <span className="text-emerald-500 text-xs">(AI detected)</span>}</label>
                                                         <input type="date" value={formData.date} onChange={(e) => setFormData({ ...formData, date: e.target.value })} required className="w-full border border-slate-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-amber-500 outline-none" />
                                                     </div>
                                                 </div>
@@ -1110,9 +1277,19 @@ BYD MotorEast Singapore`;
                                                 </div>
                                             )}
 
-                                            <button type="submit" disabled={!uploadedFile || !formData.operator || !formData.amount || !formData.date || submitting} className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-slate-300 disabled:to-slate-400 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
+                                            {/* Warning if AI says not EV receipt */}
+                                            {aiAnalysis && !aiAnalysis.error && !aiAnalysis.isEVCharging && (
+                                                <div className="bg-orange-100 border border-orange-300 rounded-xl p-4 text-center">
+                                                    <p className="text-orange-700 font-medium">This receipt may not qualify for EV charging rebate</p>
+                                                    <p className="text-orange-600 text-sm mt-1">Please ensure you're submitting a valid EV charging receipt</p>
+                                                </div>
+                                            )}
+
+                                            <button type="submit" disabled={!uploadedFile || !formData.operator || !formData.amount || !formData.date || submitting || analyzing || (GEMINI_API_KEY && aiAnalysis && !aiAnalysis.isEVCharging)} className="w-full bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 disabled:from-slate-300 disabled:to-slate-400 text-white font-bold py-4 px-6 rounded-xl shadow-lg transition-all flex items-center justify-center gap-2">
                                                 {submitting ? (
                                                     <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Processing...</>
+                                                ) : analyzing ? (
+                                                    <><div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />Analyzing...</>
                                                 ) : (
                                                     <><Upload className="w-5 h-5" />Submit Claim</>
                                                 )}
