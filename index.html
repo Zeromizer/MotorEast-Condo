@@ -227,7 +227,18 @@ Important:
                     .eq('user_id', userId)
                     .order('charge_date', { ascending: false });
                 if (error) throw error;
-                return data;
+                return data.map(c => ({
+                    id: c.id,
+                    userId: c.user_id,
+                    date: c.charge_date,
+                    operator: c.operator,
+                    amount: parseFloat(c.amount),
+                    rebateRate: parseFloat(c.rebate_rate),
+                    rebate: parseFloat(c.rebate_amount),
+                    status: c.status,
+                    condo: c.condo?.name,
+                    receiptPath: c.receipt_path
+                }));
             },
 
             async getAllClaims() {
@@ -1685,10 +1696,14 @@ BYD MotorEast Singapore`;
                             rebateRate: profile.condo?.rebate_rate || 0.10
                         };
 
-                        // Load claims for admin
+                        // Load claims
                         if (profile.role === 'admin') {
                             const allClaims = await db.getAllClaims();
                             setClaims(allClaims);
+                        } else {
+                            // Load customer's own claims
+                            const userClaims = await db.getUserClaims(authUser.id);
+                            setClaims(userClaims);
                         }
 
                         onLogin(userData);
@@ -1996,6 +2011,10 @@ BYD MotorEast Singapore`;
                             if (profile.role === 'admin') {
                                 const allClaims = await db.getAllClaims();
                                 setClaims(allClaims);
+                            } else {
+                                // Load customer's own claims
+                                const userClaims = await db.getUserClaims(session.user.id);
+                                setClaims(userClaims);
                             }
                         }
                     } catch (err) {
