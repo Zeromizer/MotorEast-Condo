@@ -242,6 +242,7 @@ Important:
                 if (error) throw error;
                 return data.map(c => ({
                     id: c.id,
+                    userId: c.user_id,
                     date: c.charge_date,
                     operator: c.operator,
                     amount: parseFloat(c.amount),
@@ -917,7 +918,8 @@ BYD MotorEast Singapore`;
             const [aiAnalysis, setAiAnalysis] = useState(null); // AI receipt analysis result
             const [analyzing, setAnalyzing] = useState(false);
 
-            const userClaims = claims.filter(c => c.participant === user.name);
+            // Filter claims by user ID (Supabase) or name (demo mode)
+            const userClaims = claims.filter(c => c.userId === user.id || c.participant === user.name);
             const approvedTotal = userClaims.filter(c => c.status === 'approved').reduce((sum, c) => sum + c.rebate, 0);
             const pendingTotal = userClaims.filter(c => c.status === 'pending').reduce((sum, c) => sum + c.rebate, 0);
             const yearCap = 500;
@@ -988,6 +990,7 @@ BYD MotorEast Singapore`;
                         // Add to local state for immediate display
                         const claimForDisplay = {
                             id: newClaim.id,
+                            userId: user.id,
                             date: newClaim.charge_date,
                             operator: newClaim.operator,
                             amount: parseFloat(newClaim.amount),
@@ -1370,14 +1373,30 @@ BYD MotorEast Singapore`;
             const readyForPayout = claims.filter(c => c.status === 'approved');
             const payoutTotal = readyForPayout.reduce((sum, c) => sum + c.rebate, 0);
 
-            const handleApprove = (id) => {
-                setClaims(claims.map(c => c.id === id ? { ...c, status: 'approved' } : c));
-                setSelectedClaim(null);
+            const handleApprove = async (id) => {
+                try {
+                    if (USE_SUPABASE) {
+                        await db.updateClaimStatus(id, 'approved', null);
+                    }
+                    setClaims(claims.map(c => c.id === id ? { ...c, status: 'approved' } : c));
+                    setSelectedClaim(null);
+                } catch (err) {
+                    console.error('Failed to approve claim:', err);
+                    alert('Failed to approve claim: ' + err.message);
+                }
             };
 
-            const handleReject = (id) => {
-                setClaims(claims.map(c => c.id === id ? { ...c, status: 'rejected' } : c));
-                setSelectedClaim(null);
+            const handleReject = async (id) => {
+                try {
+                    if (USE_SUPABASE) {
+                        await db.updateClaimStatus(id, 'rejected', null);
+                    }
+                    setClaims(claims.map(c => c.id === id ? { ...c, status: 'rejected' } : c));
+                    setSelectedClaim(null);
+                } catch (err) {
+                    console.error('Failed to reject claim:', err);
+                    alert('Failed to reject claim: ' + err.message);
+                }
             };
 
             const downloadCSV = () => {
