@@ -100,8 +100,20 @@
             },
 
             // CLAIMS
-            async submitClaim(claimData, userId, condoId, rebateRate) {
+            async submitClaim(claimData, userId, condoId, rebateRate, receiptFile) {
                 const rebateAmount = claimData.amount * rebateRate;
+
+                // Upload receipt if provided
+                let receiptPath = null;
+                if (receiptFile) {
+                    const fileName = `${userId}/${Date.now()}-${receiptFile.name}`;
+                    const { data: uploadData, error: uploadError } = await supabase.storage
+                        .from('receipts')
+                        .upload(fileName, receiptFile);
+                    if (uploadError) console.error('Receipt upload error:', uploadError);
+                    else receiptPath = uploadData.path;
+                }
+
                 const { data, error } = await supabase
                     .from('claims')
                     .insert({
@@ -112,6 +124,7 @@
                         amount: claimData.amount,
                         rebate_rate: rebateRate,
                         rebate_amount: rebateAmount,
+                        receipt_path: receiptPath,
                         status: claimData.amount > 300 ? 'flagged' : 'pending'
                     })
                     .select()
@@ -151,7 +164,8 @@
                     participant: c.profile?.name,
                     email: c.profile?.email,
                     vehicle: c.profile?.vehicle_number,
-                    condo: c.condo?.name
+                    condo: c.condo?.name,
+                    receiptPath: c.receipt_path
                 }));
             },
 
@@ -835,12 +849,13 @@ BYD MotorEast Singapore`;
 
                 try {
                     if (USE_SUPABASE) {
-                        // Save to Supabase
+                        // Save to Supabase with receipt
                         const newClaim = await db.submitClaim(
                             { date: formData.date, operator: formData.operator, amount: parseFloat(formData.amount) },
                             user.id,
                             user.condoId,
-                            user.rebateRate || tierInfo.rate
+                            user.rebateRate || tierInfo.rate,
+                            uploadedFile
                         );
 
                         // Add to local state for immediate display
@@ -1311,16 +1326,23 @@ BYD MotorEast Singapore`;
                                                 <td className="px-4 py-4 text-sm font-medium text-emerald-600">${claim.rebate.toFixed(2)}</td>
                                                 <td className="px-4 py-4"><StatusBadge status={claim.status} /></td>
                                                 <td className="px-4 py-4">
-                                                    {(claim.status === 'pending' || claim.status === 'flagged') && (
-                                                        <div className="flex items-center gap-2">
-                                                            <button onClick={() => handleApprove(claim.id)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Approve">
-                                                                <CheckCircle className="w-4 h-4" />
+                                                    <div className="flex items-center gap-2">
+                                                        {claim.receiptPath && (
+                                                            <button onClick={() => setSelectedClaim(claim)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg" title="View Receipt">
+                                                                <Eye className="w-4 h-4" />
                                                             </button>
-                                                            <button onClick={() => handleReject(claim.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Reject">
-                                                                <XCircle className="w-4 h-4" />
-                                                            </button>
-                                                        </div>
-                                                    )}
+                                                        )}
+                                                        {(claim.status === 'pending' || claim.status === 'flagged') && (
+                                                            <>
+                                                                <button onClick={() => handleApprove(claim.id)} className="p-2 text-emerald-600 hover:bg-emerald-50 rounded-lg" title="Approve">
+                                                                    <CheckCircle className="w-4 h-4" />
+                                                                </button>
+                                                                <button onClick={() => handleReject(claim.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg" title="Reject">
+                                                                    <XCircle className="w-4 h-4" />
+                                                                </button>
+                                                            </>
+                                                        )}
+                                                    </div>
                                                 </td>
                                             </tr>
                                         ))}
@@ -1332,6 +1354,53 @@ BYD MotorEast Singapore`;
                         {/* Email Generator Modal */}
                         {showEmailGenerator && (
                             <EmailTemplateGenerator claims={claims} onClose={() => setShowEmailGenerator(false)} />
+                        )}
+
+                        {/* Receipt Viewer Modal */}
+                        {selectedClaim && (
+                            <div className="fixed inset-0 bg-black/50 flex items-center justify-center p-4 z-50">
+                                <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-hidden">
+                                    <div className="p-6 border-b border-slate-200 flex items-center justify-between">
+                                        <h3 className="text-xl font-bold text-slate-800">Claim Details</h3>
+                                        <button onClick={() => setSelectedClaim(null)} className="p-2 hover:bg-slate-100 rounded-lg">
+                                            <X className="w-5 h-5 text-slate-500" />
+                                        </button>
+                                    </div>
+                                    <div className="p-6 overflow-y-auto max-h-[70vh]">
+                                        <div className="grid grid-cols-2 gap-4 mb-6">
+                                            <div><span className="text-slate-500 text-sm">Participant</span><p className="font-medium">{selectedClaim.participant || 'N/A'}</p></div>
+                                            <div><span className="text-slate-500 text-sm">Email</span><p className="font-medium">{selectedClaim.email || 'N/A'}</p></div>
+                                            <div><span className="text-slate-500 text-sm">Condo</span><p className="font-medium">{selectedClaim.condo || 'N/A'}</p></div>
+                                            <div><span className="text-slate-500 text-sm">Vehicle</span><p className="font-medium">{selectedClaim.vehicle || 'N/A'}</p></div>
+                                            <div><span className="text-slate-500 text-sm">Date</span><p className="font-medium">{selectedClaim.date}</p></div>
+                                            <div><span className="text-slate-500 text-sm">Operator</span><p className="font-medium">{selectedClaim.operator}</p></div>
+                                            <div><span className="text-slate-500 text-sm">Amount</span><p className="font-medium">${selectedClaim.amount.toFixed(2)}</p></div>
+                                            <div><span className="text-slate-500 text-sm">Rebate ({(selectedClaim.rebateRate * 100).toFixed(0)}%)</span><p className="font-medium text-emerald-600">${selectedClaim.rebate.toFixed(2)}</p></div>
+                                        </div>
+                                        {selectedClaim.receiptPath && (
+                                            <div className="border-t border-slate-200 pt-6">
+                                                <h4 className="font-semibold text-slate-800 mb-4">Receipt</h4>
+                                                <img
+                                                    src={`${SUPABASE_URL}/storage/v1/object/public/receipts/${selectedClaim.receiptPath}`}
+                                                    alt="Receipt"
+                                                    className="max-w-full rounded-lg shadow-md border"
+                                                    onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'block'; }}
+                                                />
+                                                <p className="text-slate-500 text-sm hidden">Receipt image could not be loaded</p>
+                                            </div>
+                                        )}
+                                        <div className="flex gap-3 mt-6 pt-6 border-t border-slate-200">
+                                            {(selectedClaim.status === 'pending' || selectedClaim.status === 'flagged') && (
+                                                <>
+                                                    <button onClick={() => { handleApprove(selectedClaim.id); setSelectedClaim(null); }} className="flex-1 bg-emerald-500 hover:bg-emerald-600 text-white font-medium py-3 rounded-lg">Approve</button>
+                                                    <button onClick={() => { handleReject(selectedClaim.id); setSelectedClaim(null); }} className="flex-1 bg-red-500 hover:bg-red-600 text-white font-medium py-3 rounded-lg">Reject</button>
+                                                </>
+                                            )}
+                                            <button onClick={() => setSelectedClaim(null)} className="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-medium py-3 rounded-lg">Close</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         )}
                     </main>
                 </div>
